@@ -18,6 +18,16 @@ imagorvideo uses reader stream for mkv and webm video types. For other video typ
 docker run -p 8000:8000 shumc/imagorvideo -imagor-unsafe
 ```
 
+Original:
+```
+https://test-videos.co.uk/vids/bigbuckbunny/mkv/1080/Big_Buck_Bunny_1080_10s_30MB.mkv
+```
+
+Result:
+```
+http://localhost:8000/unsafe/fit-in/500x0/10x10/filters:fill(yellow)/https://test-videos.co.uk/vids/bigbuckbunny/mkv/1080/Big_Buck_Bunny_1080_10s_30MB.mkv
+```
+
 Check out [imagor](https://github.com/cshum/imagor#image-endpoint) for all existing image operations supported.
 
 ### Configuration
