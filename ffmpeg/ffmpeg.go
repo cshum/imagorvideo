@@ -282,7 +282,7 @@ func encodeFrameImage(av *AVContext) ([]byte, error) {
 	if err < 0 {
 		return nil, avError(err)
 	}
-	p := (*[1 << 30]byte)(unsafe.Pointer(pkt.data))[:pkt.size:pkt.size]
+	p := C.GoBytes(unsafe.Pointer(pkt.data), pkt.size)
 	if pkt.buf != nil {
 		C.av_packet_unref(&pkt)
 	}
