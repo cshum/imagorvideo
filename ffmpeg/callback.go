@@ -30,7 +30,7 @@ func goPacketSeek(opaque unsafe.Pointer, offset C.int64_t, whence C.int) C.int64
 	if !ok || ctx.seeker == nil {
 		return C.int64_t(ErrUnknown)
 	}
-	if whence == C.AVSEEK_SIZE && ctx.size > 0 {
+	if whence == C.AVSEEK_SIZE {
 		return C.int64_t(ctx.size)
 	}
 	n, err := ctx.seeker.Seek(int64(offset), int(whence))
