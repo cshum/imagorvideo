@@ -88,6 +88,9 @@ func (av *AVContext) ExportImage() ([]byte, error) {
 }
 
 func (av *AVContext) Close() {
+	if av.hasFrame {
+		C.av_frame_free(&av.frame)
+	}
 	freeFormatContext(av)
 }
 
