@@ -96,10 +96,10 @@ func (p *Processor) Process(ctx context.Context, in *imagor.Blob, params imagorp
 				return
 			}
 			var filename = file.Name()
-			imagor.Defer(ctx, func() {
+			defer func() {
 				_ = os.Remove(filename)
 				p.Logger.Debug("cleanup", zap.String("file", filename))
-			})
+			}()
 			if size, err = io.Copy(file, reader); err != nil {
 				return
 			}
@@ -116,6 +116,7 @@ func (p *Processor) Process(ctx context.Context, in *imagor.Blob, params imagorp
 	if err != nil {
 		return
 	}
+	defer av.Close()
 	meta := av.Metadata()
 	if params.Meta {
 		out = imagor.NewBlobFromJsonMarshal(meta)
