@@ -10,8 +10,6 @@ Imagorvideo uses ffmpeg C bindings that extracts image thumbnail from video by a
 
 imagorvideo uses reader stream for mkv and webm video types. For other video types that requires seeking from a non seek-able source such as HTTP or S3, it simulates seek using memory buffer or temp file, by having the whole file to be fully loaded to perform seek.
 
-**This project is a work in progress**. It also aims to be a reference project demonstrating imagor extensibility. 
-
 ### Quick Start
 
 ```bash
@@ -20,13 +18,14 @@ docker run -p 8000:8000 shumc/imagorvideo -imagor-unsafe
 
 Original:
 ```
-https://test-videos.co.uk/vids/bigbuckbunny/mkv/1080/Big_Buck_Bunny_1080_10s_30MB.mkv
+https://test-videos.co.uk/vids/bigbuckbunny/mkv/1080/Big_Buck_Bunny_1080_10s_5MB.mkv
 ```
 
 Result:
 ```
-http://localhost:8000/unsafe/fit-in/500x0/10x10/filters:fill(yellow)/https://test-videos.co.uk/vids/bigbuckbunny/mkv/1080/Big_Buck_Bunny_1080_10s_30MB.mkv
+http://localhost:8000/unsafe/fit-in/300x200/filters:label(imagorvideo,-10,10,20,yellow):fill(yellow)/https://test-videos.co.uk/vids/bigbuckbunny/mkv/1080/Big_Buck_Bunny_1080_10s_5MB.mkv
 ```
+<img src="https://raw.githubusercontent.com/cshum/imagorvideo/master/testdata/demo.png" width="150" />
 
 Check out [imagor](https://github.com/cshum/imagor#image-endpoint) for all existing image operations supported.
 
