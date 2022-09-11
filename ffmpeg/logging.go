@@ -1,7 +1,9 @@
 package ffmpeg
 
 // #include "ffmpeg.h"
+// #include "logging.h"
 import "C"
+import "sync"
 
 // AVLogLevel defines the ffmpeg threshold for dumping information to stderr.
 type AVLogLevel int
@@ -19,6 +21,12 @@ const (
 	AVLogTrace
 )
 
+var (
+	currentLoggingHandlerFunction = noopLoggingHandler
+	currentLoggingVerbosity       AVLogLevel
+	onceLogging                   sync.Once
+)
+
 func logLevel() AVLogLevel {
 	return AVLogLevel(C.av_log_get_level())
 }
@@ -26,4 +34,25 @@ func logLevel() AVLogLevel {
 // SetFFmpegLogLevel allows you to change the log level from the default (AVLogInfo).
 func SetFFmpegLogLevel(logLevel AVLogLevel) {
 	C.av_log_set_level(C.int(logLevel))
+	currentLoggingVerbosity = logLevel
+}
+
+type LoggingHandlerFunction func(messageLevel AVLogLevel, message string)
+
+func SetLogging(handler LoggingHandlerFunction) {
+	onceLogging.Do(func() {
+		C.goavLogSetup()
+	})
+	if handler != nil {
+		currentLoggingHandlerFunction = handler
+	}
+}
+
+func noopLoggingHandler(_ AVLogLevel, _ string) {
+}
+
+func log(level AVLogLevel, message string) {
+	if level <= currentLoggingVerbosity {
+		currentLoggingHandlerFunction(level, message)
+	}
 }
