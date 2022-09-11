@@ -52,3 +52,8 @@ func goInterrupt(opaque unsafe.Pointer) C.int {
 	}
 	return 0
 }
+
+//export goAVLoggingHandler
+func goAVLoggingHandler(level C.int, cstr *C.char) {
+	log(AVLogLevel(level), C.GoString(cstr))
+}
