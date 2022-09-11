@@ -10,6 +10,9 @@ Imagorvideo uses ffmpeg C bindings that extracts image thumbnail from video by a
 
 imagorvideo uses reader stream for mkv and webm video types. For other video types that requires seeking from a non seek-able source such as HTTP or S3, it simulates seek using memory buffer or temp file, by having the whole file to be fully loaded to perform seek.
 
+This also aims to be a reference project demonstrating imagor extension.
+
+
 ### Quick Start
 
 ```bash
