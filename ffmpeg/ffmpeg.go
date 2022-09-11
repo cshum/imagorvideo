@@ -277,14 +277,13 @@ func convertFrameToRGB(av *AVContext) error {
 }
 
 func encodeFrameImage(av *AVContext) ([]byte, error) {
-	pkt := C.create_packet()
-	err := C.encode_frame_to_image(av.formatContext, av.frame, &pkt)
-	if err < 0 {
-		return nil, avError(err)
+	size := av.height * av.width
+	if av.hasAlpha {
+		size *= 4
+	} else {
+		size *= 3
 	}
-	p := C.GoBytes(unsafe.Pointer(pkt.data), pkt.size)
-	if pkt.buf != nil {
-		C.av_packet_unref(&pkt)
-	}
+	ptr := &av.frame.data[0]
+	p := C.GoBytes(unsafe.Pointer(ptr), C.int(size))
 	return p, nil
 }
