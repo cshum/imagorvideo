@@ -33,13 +33,11 @@ func (p *Processor) Startup(_ context.Context) error {
 		message = strings.TrimSuffix(message, "\n")
 		switch level {
 		case ffmpeg.AVLogTrace, ffmpeg.AVLogDebug, ffmpeg.AVLogVerbose:
-			p.Logger.Debug("ffmpeg", zap.String("msg", message))
+			p.Logger.Debug("ffmpeg", zap.String("log", message))
 		case ffmpeg.AVLogInfo:
-			p.Logger.Info("ffmpeg", zap.String("msg", message))
-		case ffmpeg.AVLogWarning:
-			p.Logger.Warn("ffmpeg", zap.String("msg", message))
-		case ffmpeg.AVLogError, ffmpeg.AVLogFatal, ffmpeg.AVLogPanic:
-			p.Logger.Error("ffmpeg", zap.String("msg", message))
+			p.Logger.Info("ffmpeg", zap.String("log", message))
+		case ffmpeg.AVLogWarning, ffmpeg.AVLogError, ffmpeg.AVLogFatal, ffmpeg.AVLogPanic:
+			p.Logger.Warn("ffmpeg", zap.String("log", message))
 		}
 	})
 	if p.Debug {
