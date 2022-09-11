@@ -1,6 +1,5 @@
 package imagorvideo
 
-import "C"
 import (
 	"context"
 	"github.com/cshum/imagor"
