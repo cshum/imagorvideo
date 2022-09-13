@@ -214,36 +214,6 @@ AVFrame *convert_frame_to_rgb(AVFrame *frame, int alpha) {
     return output_frame;
 }
 
-int encode_frame_to_image(AVFormatContext *fmt_ctx, AVFrame *frame, AVPacket *pkt) {
-    AVCodec *enc = avcodec_find_encoder(AV_CODEC_ID_PNG);
-    if (!enc) {
-        return AVERROR_ENCODER_NOT_FOUND;
-    }
-    AVCodecContext *enc_ctx = avcodec_alloc_context3(enc);
-    if (!enc_ctx) {
-        return AVERROR(ENOMEM);
-    }
-    enc_ctx->width = frame->width;
-    enc_ctx->height = frame->height;
-    enc_ctx->pix_fmt = frame->format;
-    enc_ctx->codec_type = AVMEDIA_TYPE_VIDEO;
-    enc_ctx->time_base = (AVRational) {1, 1};
-    enc_ctx->compression_level = INT_MAX;
-    int err = open_codec(enc_ctx, enc);
-    if (err < 0) {
-        avcodec_free_context(&enc_ctx);
-        return err;
-    }
-    err = avcodec_send_frame(enc_ctx, frame);
-    if (err < 0) {
-        avcodec_free_context(&enc_ctx);
-        return err;
-    }
-    err = avcodec_receive_packet(enc_ctx, pkt);
-    avcodec_free_context(&enc_ctx);
-    return err;
-}
-
 AVPacket create_packet() {
     AVPacket *pkt = av_packet_alloc();
     pkt->data = NULL;
@@ -462,8 +432,10 @@ static AVFrame *get_best_frame(ThumbContext *thumb_ctx) {
             n = i;
         }
     }
-    thumb_ctx->alpha = alpha_check(thumb_ctx->frames[n].frame, thumb_ctx->desc->flags,
-                                   thumb_ctx->frames[n].hist[thumb_ctx->hist_size - 1]);
+    thumb_ctx->alpha = alpha_check(
+      thumb_ctx->frames[n].frame,
+      thumb_ctx->desc->flags,
+      thumb_ctx->frames[n].hist[thumb_ctx->hist_size - 1]);
     return thumb_ctx->frames[n].frame;
 }
 

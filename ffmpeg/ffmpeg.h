@@ -48,8 +48,6 @@ int create_codec_context(AVStream *video_stream, AVCodecContext **dec_ctx);
 
 AVFrame *convert_frame_to_rgb(AVFrame *frame, int alpha);
 
-int encode_frame_to_image(AVFormatContext *fmt_ctx, AVFrame *frame, AVPacket *pkt);
-
 AVPacket create_packet();
 
 int

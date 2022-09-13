@@ -80,11 +80,8 @@ func LoadAVContext(ctx context.Context, reader io.Reader, size int64) (*AVContex
 	return av, nil
 }
 
-func (av *AVContext) ExportImage() ([]byte, error) {
-	if !av.hasFrame {
-		return nil, nil
-	}
-	return encodeFrameImage(av)
+func (av *AVContext) Export() (buf []byte, err error) {
+	return exportBuffer(av)
 }
 
 func (av *AVContext) Close() {
@@ -279,15 +276,16 @@ func convertFrameToRGB(av *AVContext) error {
 	return nil
 }
 
-func encodeFrameImage(av *AVContext) ([]byte, error) {
-	pkt := C.create_packet()
-	err := C.encode_frame_to_image(av.formatContext, av.frame, &pkt)
-	if err < 0 {
-		return nil, avError(err)
+func exportBuffer(av *AVContext) ([]byte, error) {
+	if !av.hasFrame {
+		return nil, ErrDecoderNotFound
 	}
-	p := C.GoBytes(unsafe.Pointer(pkt.data), pkt.size)
-	if pkt.buf != nil {
-		C.av_packet_unref(&pkt)
+	size := av.height * av.width
+	if av.hasAlpha {
+		size *= 4
+	} else {
+		size *= 3
 	}
-	return p, nil
+	buf := C.GoBytes(unsafe.Pointer(av.frame.data[0]), C.int(size))
+	return buf, nil
 }

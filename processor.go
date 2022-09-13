@@ -130,14 +130,19 @@ func (p *Processor) Process(ctx context.Context, in *imagor.Blob, params imagorp
 	case 8:
 		filters = append(filters, imagorpath.Filter{Name: "rotate", Args: "90"})
 	}
-	buf, err := av.ExportImage()
+	buf, err := av.Export()
 	if err != nil || len(buf) == 0 {
 		if err == nil {
 			err = imagor.ErrUnsupportedFormat
 		}
 		return
 	}
-	out = imagor.NewBlobFromBytes(buf)
+	bands := 3
+	if meta.HasAlpha {
+		bands = 4
+	}
+	out = imagor.NewBlobFromMemory(buf, meta.Width, meta.Height, bands)
+
 	if len(filters) > 0 {
 		params.Filters = append(filters, params.Filters...)
 		params.Path = imagorpath.GeneratePath(params)
