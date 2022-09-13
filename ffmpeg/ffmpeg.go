@@ -80,9 +80,9 @@ func LoadAVContext(ctx context.Context, reader io.Reader, size int64) (*AVContex
 	return av, nil
 }
 
-func (av *AVContext) Export() ([]byte, error) {
+func (av *AVContext) Export() (buf []byte, err error) {
 	if !av.hasFrame {
-		return nil, nil
+		return
 	}
 	return exportBuffer(av)
 }

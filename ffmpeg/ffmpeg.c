@@ -432,8 +432,10 @@ static AVFrame *get_best_frame(ThumbContext *thumb_ctx) {
             n = i;
         }
     }
-    thumb_ctx->alpha = alpha_check(thumb_ctx->frames[n].frame, thumb_ctx->desc->flags,
-                                   thumb_ctx->frames[n].hist[thumb_ctx->hist_size - 1]);
+    thumb_ctx->alpha = alpha_check(
+      thumb_ctx->frames[n].frame,
+      thumb_ctx->desc->flags,
+      thumb_ctx->frames[n].hist[thumb_ctx->hist_size - 1]);
     return thumb_ctx->frames[n].frame;
 }
 
