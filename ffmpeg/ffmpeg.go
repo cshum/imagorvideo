@@ -80,11 +80,11 @@ func LoadAVContext(ctx context.Context, reader io.Reader, size int64) (*AVContex
 	return av, nil
 }
 
-func (av *AVContext) ExportImage() ([]byte, error) {
+func (av *AVContext) Export() ([]byte, error) {
 	if !av.hasFrame {
 		return nil, nil
 	}
-	return encodeFrameImage(av)
+	return exportBuffer(av)
 }
 
 func (av *AVContext) Close() {
@@ -279,7 +279,7 @@ func convertFrameToRGB(av *AVContext) error {
 	return nil
 }
 
-func encodeFrameImage(av *AVContext) ([]byte, error) {
+func exportBuffer(av *AVContext) ([]byte, error) {
 	size := av.height * av.width
 	if av.hasAlpha {
 		size *= 4
