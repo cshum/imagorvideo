@@ -81,9 +81,6 @@ func LoadAVContext(ctx context.Context, reader io.Reader, size int64) (*AVContex
 }
 
 func (av *AVContext) Export() (buf []byte, err error) {
-	if !av.hasFrame {
-		return
-	}
 	return exportBuffer(av)
 }
 
@@ -280,6 +277,9 @@ func convertFrameToRGB(av *AVContext) error {
 }
 
 func exportBuffer(av *AVContext) ([]byte, error) {
+	if !av.hasFrame {
+		return nil, ErrDecoderNotFound
+	}
 	size := av.height * av.width
 	if av.hasAlpha {
 		size *= 4
