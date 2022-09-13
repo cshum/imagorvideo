@@ -286,7 +286,5 @@ func exportBuffer(av *AVContext) ([]byte, error) {
 	} else {
 		size *= 3
 	}
-	ptr := &av.frame.data[0]
-	p := C.GoBytes(unsafe.Pointer(ptr), C.int(size))
-	return p, nil
+	return C.GoBytes(unsafe.Pointer(&av.frame.data), C.int(size)), nil
 }
