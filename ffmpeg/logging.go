@@ -27,10 +27,6 @@ var (
 	onceLogging                   sync.Once
 )
 
-func logLevel() AVLogLevel {
-	return AVLogLevel(C.av_log_get_level())
-}
-
 // SetFFmpegLogLevel allows you to change the log level from the default (AVLogInfo).
 func SetFFmpegLogLevel(logLevel AVLogLevel) {
 	C.av_log_set_level(C.int(logLevel))

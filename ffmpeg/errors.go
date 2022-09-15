@@ -2,10 +2,6 @@ package ffmpeg
 
 // #include "ffmpeg.h"
 import "C"
-import (
-	"strconv"
-	"unsafe"
-)
 
 type avError int
 
@@ -19,19 +15,20 @@ const (
 )
 
 func (e avError) errorString() string {
-	if e == ErrNoMem {
+	switch e {
+	case ErrNoMem:
 		return "cannot allocate memory"
-	}
-	if e == ErrTooBig {
+	case ErrTooBig:
 		return "video or cover art size exceeds maximum allowed dimensions"
+	case ErrEOF:
+		return "end of file"
+	case ErrDecoderNotFound:
+		return "decoder not found"
+	case ErrInvalidData:
+		return "invalid data found when processing input"
+	default:
+		return "unknown error occurred"
 	}
-	errString := (*C.char)(C.av_malloc(C.AV_ERROR_MAX_STRING_SIZE))
-	if errString == nil {
-		return "cannot allocate memory for error string, error code: " + strconv.Itoa(int(e))
-	}
-	defer C.av_free(unsafe.Pointer(errString))
-	C.av_make_error_string(errString, C.AV_ERROR_MAX_STRING_SIZE, C.int(e))
-	return C.GoString(errString)
 }
 
 func (e avError) Error() string {
