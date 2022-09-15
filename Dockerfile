@@ -95,7 +95,7 @@ RUN go mod download
 
 COPY . .
 
-# RUN if [ "$TARGETARCH" = "amd64" ]; then go test ./...; fi
+RUN if [ "$TARGETARCH" = "amd64" ]; then go test ./...; fi
 RUN go build -o ${GOPATH}/bin/imagorvideo ./cmd/imagorvideo/main.go
 
 FROM debian:bullseye-slim
