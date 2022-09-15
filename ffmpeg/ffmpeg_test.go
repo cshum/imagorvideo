@@ -62,7 +62,7 @@ func TestAVContextMeta(t *testing.T) {
 			require.NoError(t, err)
 			buf, err = img.ExportJpeg(nil)
 			require.NoError(t, err)
-			goldenFile = baseDir + "golden/result/" + tt.file + ".jpg"
+			goldenFile = baseDir + "golden/export/" + tt.file + ".jpg"
 			if curr, err := os.ReadFile(goldenFile); err == nil {
 				assert.True(t, reflect.DeepEqual(curr, buf))
 			} else {
