@@ -52,7 +52,7 @@ func TestProcessor(t *testing.T) {
 	}, WithDebug(true), WithLogger(zap.NewExample()))
 	doGoldenTests(t, filepath.Join(testDataDir, "golden/result-fallback-image"), []test{
 		{name: "corrupted with fallback image", path: "fit-in/100x100/corrupt/everybody-betray-me.mkv", expectCode: 406},
-	}, WithDebug(true), WithLogger(zap.NewExample()), WithFallbackImage("demo.png"))
+	}, WithDebug(false), WithLogger(zap.NewExample()), WithFallbackImage("demo.png"))
 }
 
 func doGoldenTests(t *testing.T, resultDir string, tests []test, opts ...Option) {
