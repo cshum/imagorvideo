@@ -11,7 +11,6 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -58,9 +57,8 @@ func doGoldenTests(t *testing.T, resultDir string, tests []test, opts ...Option)
 		loaderFunc(func(r *http.Request, image string) (blob *imagor.Blob, err error) {
 			image, _ = loader.Path(image)
 			return imagor.NewBlob(func() (reader io.ReadCloser, size int64, err error) {
-				// force no seeker
+				// force read full file by 0 size
 				reader, err = os.Open(image)
-				reader = ioutil.NopCloser(reader)
 				return
 			}), nil
 		}),
