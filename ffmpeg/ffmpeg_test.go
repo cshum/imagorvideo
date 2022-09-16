@@ -26,7 +26,7 @@ var files = []string{
 
 var baseDir = "../testdata/"
 
-func TestAVContextMeta(t *testing.T) {
+func TestAVContext(t *testing.T) {
 	vips.Startup(nil)
 	SetFFmpegLogLevel(AVLogDebug)
 	logger := zap.NewExample()
@@ -43,7 +43,7 @@ func TestAVContextMeta(t *testing.T) {
 		}
 	})
 	require.NoError(t, os.MkdirAll(baseDir+"golden/meta", 0755))
-	require.NoError(t, os.MkdirAll(baseDir+"golden/result", 0755))
+	require.NoError(t, os.MkdirAll(baseDir+"golden/export", 0755))
 	t.Parallel()
 	for _, filename := range files {
 		t.Run(filename, func(t *testing.T) {
