@@ -31,6 +31,7 @@ func TestAVContext(t *testing.T) {
 	SetFFmpegLogLevel(AVLogDebug)
 	logger := zap.NewExample()
 	SetLogging(nil)
+	log(AVLogDebug, "nop logging")
 	SetLogging(func(level AVLogLevel, message string) {
 		message = strings.TrimSuffix(message, "\n")
 		switch level {

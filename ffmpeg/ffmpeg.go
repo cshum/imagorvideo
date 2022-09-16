@@ -278,7 +278,7 @@ func convertFrameToRGB(av *AVContext) error {
 
 func exportBuffer(av *AVContext) ([]byte, error) {
 	if !av.hasFrame {
-		return nil, ErrDecoderNotFound
+		return nil, ErrInvalidData
 	}
 	size := av.height * av.width
 	if av.hasAlpha {
