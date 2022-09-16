@@ -57,9 +57,6 @@ func (p *Processor) Process(ctx context.Context, in *imagor.Blob, params imagorp
 		if err == nil || out != nil {
 			return
 		}
-		if _, ok := err.(imagor.ErrForward); ok {
-			return
-		}
 		// fallback image on error
 		out = imagor.NewBlobFromBytes(transPixel)
 		if p.FallbackImage != "" {
