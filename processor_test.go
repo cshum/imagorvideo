@@ -41,6 +41,7 @@ func TestProcessor(t *testing.T) {
 	var resultDir = filepath.Join(testDataDir, "golden/result")
 	doGoldenTests(t, resultDir, []test{
 		{name: "mkv", path: "fit-in/100x100/everybody-betray-me.mkv"},
+		{name: "mkv meta", path: "meta/everybody-betray-me.mkv"},
 		{name: "mp4", path: "fit-in/100x100/schizo_0.mp4"},
 		{name: "mp4 90", path: "fit-in/100x100/schizo_90.mp4"},
 		{name: "mp4 180", path: "fit-in/100x100/schizo_180.mp4"},
