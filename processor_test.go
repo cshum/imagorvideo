@@ -40,8 +40,7 @@ func TestProcessor(t *testing.T) {
 	t.Cleanup(func() {
 		require.NoError(t, v.Shutdown(context.Background()))
 	})
-	var resultDir = filepath.Join(testDataDir, "golden/result")
-	doGoldenTests(t, resultDir, []test{
+	doGoldenTests(t, filepath.Join(testDataDir, "golden/result"), []test{
 		{name: "mkv", path: "fit-in/100x100/everybody-betray-me.mkv"},
 		{name: "mkv meta", path: "meta/everybody-betray-me.mkv"},
 		{name: "mp4", path: "fit-in/100x100/schizo_0.mp4"},
@@ -50,7 +49,10 @@ func TestProcessor(t *testing.T) {
 		{name: "mp4 270", path: "fit-in/100x100/schizo_270.mp4"},
 		{name: "image", path: "fit-in/100x100/demo.png"},
 		{name: "corrupted", path: "fit-in/100x100/corrupt/everybody-betray-me.mkv", expectCode: 406},
-	}, WithDebug(true))
+	}, WithDebug(true), WithLogger(zap.NewExample()))
+	doGoldenTests(t, filepath.Join(testDataDir, "golden/result-fallback-image"), []test{
+		{name: "corrupted with fallback image", path: "fit-in/100x100/corrupt/everybody-betray-me.mkv", expectCode: 406},
+	}, WithDebug(true), WithLogger(zap.NewExample()), WithFallbackImage("demo.png"))
 }
 
 func doGoldenTests(t *testing.T, resultDir string, tests []test, opts ...Option) {
