@@ -46,7 +46,8 @@ func TestProcessor(t *testing.T) {
 		{name: "mp4 90", path: "fit-in/100x100/schizo_90.mp4"},
 		{name: "mp4 180", path: "fit-in/100x100/schizo_180.mp4"},
 		{name: "mp4 270", path: "fit-in/100x100/schizo_270.mp4"},
-	})
+		{name: "image", path: "fit-in/100x100/demo.png"},
+	}, WithDebug(true))
 }
 
 func doGoldenTests(t *testing.T, resultDir string, tests []test, opts ...Option) {
