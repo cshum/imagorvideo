@@ -116,20 +116,7 @@ func doGoldenTests(t *testing.T, resultDir string, tests []test, opts ...Option)
 				bc := imagor.NewBlobFromFile(path)
 				buf, err := bc.ReadAll()
 				require.NoError(t, err)
-				if reflect.DeepEqual(buf, w.Body.Bytes()) {
-					return
-				}
-				img1, err := vips.LoadImageFromFile(path, nil)
-				require.NoError(t, err)
-				img2, err := vips.LoadImageFromBuffer(w.Body.Bytes(), nil)
-				require.NoError(t, err)
-				require.Equal(t, img1.Width(), img2.Width(), "width mismatch")
-				require.Equal(t, img1.Height(), img2.Height(), "height mismatch")
-				buf1, err := img1.ExportWebp(nil)
-				require.NoError(t, err)
-				buf2, err := img2.ExportWebp(nil)
-				require.NoError(t, err)
-				require.True(t, reflect.DeepEqual(buf1, buf2), "image mismatch")
+				assert.True(t, reflect.DeepEqual(buf, w.Body.Bytes()))
 			})
 		}
 
