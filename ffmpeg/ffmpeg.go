@@ -7,7 +7,7 @@ package ffmpeg
 import "C"
 import (
 	"context"
-	"github.com/cshum/imagorvideo/ffmpeg/pointer"
+	"github.com/cshum/imagor/vips/pointer"
 	"io"
 	"time"
 	"unsafe"
