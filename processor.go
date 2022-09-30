@@ -95,7 +95,7 @@ func (p *Processor) Process(ctx context.Context, in *imagor.Blob, params imagorp
 	}
 	if reader == nil {
 		reader, size, err = in.NewReadSeeker()
-		if size <= 0 && err == nil {
+		if err == nil && size <= 0 {
 			_ = reader.Close()
 			reader = nil
 		}
