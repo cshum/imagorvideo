@@ -94,30 +94,35 @@ func (p *Processor) Process(ctx context.Context, in *imagor.Blob, params imagorp
 	default:
 	}
 	if reader == nil {
-		if reader, size, err = in.NewReadSeeker(); err != nil || size <= 0 {
-			// write to temp file if read seeker not available
-			if reader, _, err = in.NewReader(); err != nil {
-				return
-			}
-			var file *os.File
-			if file, err = os.CreateTemp("", "imagor-"); err != nil {
-				return
-			}
-			var filename = file.Name()
-			defer func() {
-				_ = os.Remove(filename)
-				p.Logger.Debug("cleanup", zap.String("file", filename))
-			}()
-			if size, err = io.Copy(file, reader); err != nil {
-				return
-			}
-			p.Logger.Debug("temp",
-				zap.String("file", filename),
-				zap.Int64("size", size))
-			_ = file.Close()
-			if reader, err = os.Open(filename); err != nil {
-				return
-			}
+		reader, size, err = in.NewReadSeeker()
+		if size <= 0 && err == nil {
+			_ = reader.Close()
+			reader = nil
+		}
+	}
+	if reader == nil {
+		// write to temp file if read seeker not available
+		if reader, _, err = in.NewReader(); err != nil {
+			return
+		}
+		var file *os.File
+		if file, err = os.CreateTemp("", "imagor-"); err != nil {
+			return
+		}
+		var filename = file.Name()
+		defer func() {
+			_ = os.Remove(filename)
+			p.Logger.Debug("cleanup", zap.String("file", filename))
+		}()
+		if size, err = io.Copy(file, reader); err != nil {
+			return
+		}
+		p.Logger.Debug("temp",
+			zap.String("file", filename),
+			zap.Int64("size", size))
+		_ = file.Close()
+		if reader, err = os.Open(filename); err != nil {
+			return
 		}
 	}
 	av, err := ffmpeg.LoadAVContext(ctx, reader, size)
