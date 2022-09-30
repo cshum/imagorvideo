@@ -3,19 +3,25 @@ package ffmpeg
 // #include "ffmpeg.h"
 import "C"
 import (
-	"github.com/cshum/imagorvideo/ffmpeg/pointer"
+	"github.com/cshum/imagor/vips/pointer"
 	"io"
+	"reflect"
 	"unsafe"
 )
 
 //export goPacketRead
-func goPacketRead(opaque unsafe.Pointer, buf *C.uint8_t, bufSize C.int) C.int {
+func goPacketRead(opaque unsafe.Pointer, buffer *C.uint8_t, bufSize C.int) C.int {
 	ctx, ok := pointer.Restore(opaque).(*AVContext)
 	if !ok || ctx.reader == nil {
 		return C.int(ErrUnknown)
 	}
-	p := (*[1 << 30]byte)(unsafe.Pointer(buf))[:bufSize:bufSize]
-	n, err := ctx.reader.Read(p)
+	sh := &reflect.SliceHeader{
+		Data: uintptr(unsafe.Pointer(buffer)),
+		Len:  int(bufSize),
+		Cap:  int(bufSize),
+	}
+	buf := *(*[]byte)(unsafe.Pointer(sh))
+	n, err := ctx.reader.Read(buf)
 	if err == io.EOF {
 		return C.int(ErrEOF)
 	} else if err != nil {
