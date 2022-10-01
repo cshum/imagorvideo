@@ -23,14 +23,14 @@ docker run -p 8000:8000 shumc/imagorvideo -imagor-unsafe
 
 Original:
 ```
-https://test-videos.co.uk/vids/bigbuckbunny/mkv/1080/Big_Buck_Bunny_1080_10s_5MB.mkv
+https://raw.githubusercontent.com/ietf-wg-cellar/matroska-test-files/master/test_files/test4.mkv
 ```
 
 Result:
 ```
-http://localhost:8000/unsafe/fit-in/300x200/filters:label(imagorvideo,-10,10,20,yellow):fill(yellow)/https://test-videos.co.uk/vids/bigbuckbunny/mkv/1080/Big_Buck_Bunny_1080_10s_5MB.mkv
+http://localhost:8000/unsafe/fit-in/300x200/filters:label(imagorvideo,10,-10,20,yellow):fill(yellow)/https://raw.githubusercontent.com/ietf-wg-cellar/matroska-test-files/master/test_files/test4.mkv
 ```
-<img src="https://raw.githubusercontent.com/cshum/imagorvideo/master/testdata/demo.png" width="200" />
+<img src="https://raw.githubusercontent.com/cshum/imagorvideo/master/testdata/demo.jpg" width="200" />
 
 Check out [imagor](https://github.com/cshum/imagor#image-endpoint) for all existing image operations supported.
 
