@@ -86,24 +86,15 @@ func (p *Processor) Process(ctx context.Context, in *imagor.Blob, params imagorp
 		if reader, size, err = in.NewReader(); err != nil {
 			return
 		}
-		if size <= 0 {
-			// force read full file if size unknown
-			_ = reader.Close()
-			reader = nil
-		}
 	default:
-	}
-	if reader == nil {
 		reader, size, err = in.NewReadSeeker()
-		if err == nil && size <= 0 {
-			_ = reader.Close()
-			reader = nil
-		}
 	}
-	if reader == nil {
-		// write to temp file if read seeker not available
-		if reader, _, err = in.NewReader(); err != nil {
-			return
+	if reader == nil || size <= 0 {
+		// write to temp file if read seeker not available or size unknown
+		if reader == nil {
+			if reader, _, err = in.NewReader(); err != nil {
+				return
+			}
 		}
 		var file *os.File
 		if file, err = os.CreateTemp("", "imagor-"); err != nil {
@@ -125,6 +116,9 @@ func (p *Processor) Process(ctx context.Context, in *imagor.Blob, params imagorp
 			return
 		}
 	}
+	defer func() {
+		_ = reader.Close()
+	}()
 	av, err := ffmpeg.LoadAVContext(ctx, reader, size)
 	if err != nil {
 		return
