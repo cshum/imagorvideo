@@ -116,6 +116,9 @@ func (p *Processor) Process(ctx context.Context, in *imagor.Blob, params imagorp
 			return
 		}
 	}
+	defer func() {
+		_ = reader.Close()
+	}()
 	av, err := ffmpeg.LoadAVContext(ctx, reader, size)
 	if err != nil {
 		return
