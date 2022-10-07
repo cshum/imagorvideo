@@ -3,7 +3,7 @@ module github.com/cshum/imagorvideo
 go 1.18
 
 require (
-	github.com/cshum/imagor v1.1.6
+	github.com/cshum/imagor v1.1.7
 	github.com/gabriel-vasile/mimetype v1.4.1
 	github.com/stretchr/testify v1.8.0
 	go.uber.org/zap v1.23.0
