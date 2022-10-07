@@ -15,14 +15,15 @@ func goPacketRead(opaque unsafe.Pointer, buffer *C.uint8_t, bufSize C.int) C.int
 	if !ok || ctx.reader == nil {
 		return C.int(ErrUnknown)
 	}
+	size := int(bufSize)
 	sh := &reflect.SliceHeader{
 		Data: uintptr(unsafe.Pointer(buffer)),
-		Len:  int(bufSize),
-		Cap:  int(bufSize),
+		Len:  size,
+		Cap:  size,
 	}
 	buf := *(*[]byte)(unsafe.Pointer(sh))
-	n, err := ctx.reader.Read(buf)
-	if err == io.EOF {
+	n, err := io.ReadAtLeast(ctx.reader, buf, size)
+	if (err == io.EOF || err == io.ErrUnexpectedEOF) && n == 0 {
 		return C.int(ErrEOF)
 	} else if err != nil {
 		return C.int(ErrUnknown)
