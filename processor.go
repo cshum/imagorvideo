@@ -131,11 +131,11 @@ func (p *Processor) Process(ctx context.Context, in *imagor.Blob, params imagorp
 	}
 	switch meta.Orientation {
 	case 3:
-		filters = append(filters, imagorpath.Filter{Name: "rotate", Args: "180"})
+		filters = append(filters, imagorpath.Filter{Name: "orient", Args: "180"})
 	case 6:
-		filters = append(filters, imagorpath.Filter{Name: "rotate", Args: "270"})
+		filters = append(filters, imagorpath.Filter{Name: "orient", Args: "270"})
 	case 8:
-		filters = append(filters, imagorpath.Filter{Name: "rotate", Args: "90"})
+		filters = append(filters, imagorpath.Filter{Name: "orient", Args: "90"})
 	}
 	buf, err := av.Export()
 	if err != nil || len(buf) == 0 {
@@ -151,7 +151,7 @@ func (p *Processor) Process(ctx context.Context, in *imagor.Blob, params imagorp
 	out = imagor.NewBlobFromMemory(buf, meta.Width, meta.Height, bands)
 
 	if len(filters) > 0 {
-		params.Filters = append(filters, params.Filters...)
+		params.Filters = append(params.Filters, filters...)
 		params.Path = imagorpath.GeneratePath(params)
 	}
 	err = imagor.ErrForward{Params: params}
