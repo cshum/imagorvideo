@@ -97,6 +97,9 @@ func (p *Processor) Process(ctx context.Context, in *imagor.Blob, params imagorp
 		}
 		r = rs
 	}
+	defer func() {
+		_ = r.Close()
+	}()
 	if size <= 0 {
 		// size is a must
 		if size, err = rs.Seek(0, io.SeekEnd); err != nil {
@@ -106,9 +109,6 @@ func (p *Processor) Process(ctx context.Context, in *imagor.Blob, params imagorp
 			return
 		}
 	}
-	defer func() {
-		_ = r.Close()
-	}()
 	av, err := ffmpeg.LoadAVContext(ctx, r, size)
 	if err != nil {
 		return
