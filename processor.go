@@ -8,7 +8,6 @@ import (
 	"github.com/gabriel-vasile/mimetype"
 	"go.uber.org/zap"
 	"io"
-	"os"
 	"strings"
 )
 
@@ -78,48 +77,39 @@ func (p *Processor) Process(ctx context.Context, in *imagor.Blob, params imagorp
 		out = in
 		return
 	}
-	var reader io.ReadCloser
+	var r io.ReadCloser
+	var rs io.ReadSeekCloser
 	var size int64
 	switch mime {
 	case "video/webm", "video/x-matroska":
 		// media types that does not require seek
-		if reader, size, err = in.NewReader(); err != nil {
+		if r, size, err = in.NewReader(); err != nil {
 			return
 		}
-	default:
-		reader, size, err = in.NewReadSeeker()
+		if size <= 0 {
+			_ = r.Close()
+			r = nil
+		}
 	}
-	if reader == nil || size <= 0 {
-		// write to temp file if read seeker not available or size unknown
-		if reader == nil {
-			if reader, _, err = in.NewReader(); err != nil {
-				return
-			}
-		}
-		var file *os.File
-		if file, err = os.CreateTemp("", "imagor-"); err != nil {
+	if r == nil {
+		if rs, size, err = in.NewReadSeeker(); err != nil {
 			return
 		}
-		var filename = file.Name()
-		defer func() {
-			_ = os.Remove(filename)
-			p.Logger.Debug("cleanup", zap.String("file", filename))
-		}()
-		if size, err = io.Copy(file, reader); err != nil {
+		r = rs
+	}
+	if size <= 0 {
+		// size is a must
+		if size, err = rs.Seek(0, io.SeekEnd); err != nil {
 			return
 		}
-		p.Logger.Debug("temp",
-			zap.String("file", filename),
-			zap.Int64("size", size))
-		_ = file.Close()
-		if reader, err = os.Open(filename); err != nil {
+		if _, err = rs.Seek(0, io.SeekStart); err != nil {
 			return
 		}
 	}
 	defer func() {
-		_ = reader.Close()
+		_ = r.Close()
 	}()
-	av, err := ffmpeg.LoadAVContext(ctx, reader, size)
+	av, err := ffmpeg.LoadAVContext(ctx, r, size)
 	if err != nil {
 		return
 	}
