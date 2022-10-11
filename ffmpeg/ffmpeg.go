@@ -144,20 +144,6 @@ func duration(av *AVContext) {
 	}
 }
 
-func fullDuration(av *AVContext) error {
-	if av.durationInFormat {
-		return nil
-	}
-	newDuration := time.Duration(C.find_duration(av.formatContext))
-	if newDuration < 0 {
-		return avError(newDuration)
-	}
-	if newDuration > av.duration {
-		av.duration = newDuration
-	}
-	return nil
-}
-
 func findStreams(av *AVContext) error {
 	var orientation C.int
 	err := C.find_streams(av.formatContext, &av.stream, &orientation)
