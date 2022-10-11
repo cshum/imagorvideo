@@ -87,6 +87,7 @@ func (p *Processor) Process(ctx context.Context, in *imagor.Blob, params imagorp
 			return
 		}
 		if size <= 0 {
+			// size must be known
 			_ = r.Close()
 			r = nil
 		}
@@ -100,8 +101,8 @@ func (p *Processor) Process(ctx context.Context, in *imagor.Blob, params imagorp
 	defer func() {
 		_ = r.Close()
 	}()
-	if size <= 0 {
-		// size is a must
+	if size <= 0 && rs != nil {
+		// size must be known
 		if size, err = rs.Seek(0, io.SeekEnd); err != nil {
 			return
 		}
