@@ -22,15 +22,15 @@ const (
 )
 
 type Metadata struct {
-	Orientation int           `json:"orientation"`
-	Duration    time.Duration `json:"duration,omitempty"`
-	Width       int           `json:"width,omitempty"`
-	Height      int           `json:"height,omitempty"`
-	Title       string        `json:"title,omitempty"`
-	Artist      string        `json:"artist,omitempty"`
-	HasVideo    bool          `json:"has_video"`
-	HasAudio    bool          `json:"has_audio"`
-	HasAlpha    bool          `json:"has_alpha"`
+	Orientation int    `json:"orientation"`
+	Duration    int    `json:"duration,omitempty"`
+	Width       int    `json:"width,omitempty"`
+	Height      int    `json:"height,omitempty"`
+	Title       string `json:"title,omitempty"`
+	Artist      string `json:"artist,omitempty"`
+	HasVideo    bool   `json:"has_video"`
+	HasAudio    bool   `json:"has_audio"`
+	HasAlpha    bool   `json:"has_alpha"`
 }
 
 type AVContext struct {
@@ -94,7 +94,7 @@ func (av *AVContext) Close() {
 func (av *AVContext) Metadata() *Metadata {
 	return &Metadata{
 		Orientation: av.orientation,
-		Duration:    av.duration,
+		Duration:    int(av.duration / time.Millisecond),
 		Width:       av.width,
 		Height:      av.height,
 		Title:       av.title,
