@@ -52,6 +52,7 @@ type AVContext struct {
 	title, artist      string
 	hasVideo, hasAudio bool
 	hasFrame, hasAlpha bool
+	closed             bool
 }
 
 func LoadAVContext(ctx context.Context, reader io.Reader, size int64) (*AVContext, error) {
@@ -67,17 +68,41 @@ func LoadAVContext(ctx context.Context, reader io.Reader, size int64) (*AVContex
 	if av.seeker != nil {
 		flags |= seekPacketFlag
 	}
-	err := createFormatContext(av, flags)
-	if err != nil {
+	if err := createFormatContext(av, flags); err != nil {
 		return nil, err
 	}
 	if !av.hasVideo {
 		return av, nil
 	}
-	if err = createDecoder(av); err == ErrTooBig || err == ErrDecoderNotFound {
+	if err := createDecoder(av); err == ErrTooBig || err == ErrDecoderNotFound {
+		return av, err
+	}
+	if err := createThumbContext(av); err != nil {
+		return av, err
+	}
+	if err := convertFrameToRGB(av); err != nil {
 		return av, err
 	}
 	return av, nil
+}
+
+func closeAVContext(av *AVContext) {
+	if av.closed {
+		return
+	}
+	if av.hasFrame {
+		C.av_frame_free(&av.frame)
+	}
+	if av.thumbContext != nil {
+		C.free_thumb_context(av.thumbContext)
+	}
+	if av.codecContext != nil {
+		C.avcodec_free_context(&av.codecContext)
+	}
+	if av.formatContext != nil {
+		C.free_format_context(av.formatContext)
+	}
+	pointer.Unref(av.opaque)
 }
 
 func (av *AVContext) Export() (buf []byte, err error) {
@@ -85,10 +110,7 @@ func (av *AVContext) Export() (buf []byte, err error) {
 }
 
 func (av *AVContext) Close() {
-	if av.hasFrame {
-		C.av_frame_free(&av.frame)
-	}
-	freeFormatContext(av)
+	closeAVContext(av)
 }
 
 func (av *AVContext) Metadata() *Metadata {
@@ -103,11 +125,6 @@ func (av *AVContext) Metadata() *Metadata {
 		HasAudio:    av.hasAudio,
 		HasAlpha:    av.hasAlpha,
 	}
-}
-
-func freeFormatContext(av *AVContext) {
-	C.free_format_context(av.formatContext)
-	pointer.Unref(av.opaque)
 }
 
 func createFormatContext(av *AVContext, callbackFlags C.int) error {
@@ -125,7 +142,8 @@ func createFormatContext(av *AVContext, callbackFlags C.int) error {
 	duration(av)
 	err := findStreams(av)
 	if err != nil {
-		freeFormatContext(av)
+		C.free_format_context(av.formatContext)
+		pointer.Unref(av.opaque)
 	}
 	return err
 }
@@ -165,8 +183,7 @@ func createDecoder(av *AVContext) error {
 	if err < 0 {
 		return avError(err)
 	}
-	defer C.avcodec_free_context(&av.codecContext)
-	return createThumbContext(av)
+	return nil
 }
 
 func incrementDuration(av *AVContext, frame *C.AVFrame) {
@@ -214,7 +231,6 @@ func createThumbContext(av *AVContext) error {
 		}
 		return avError(err)
 	}
-	defer C.free_thumb_context(av.thumbContext)
 	frames := make(chan *C.AVFrame, av.thumbContext.max_frames)
 	done := populateHistogram(av, frames)
 	frames <- frame
@@ -248,7 +264,7 @@ func populateThumbContext(av *AVContext, frames chan *C.AVFrame, done <-chan str
 	if err != 0 && err != C.int(ErrEOF) {
 		return avError(err)
 	}
-	return convertFrameToRGB(av)
+	return nil
 }
 
 func convertFrameToRGB(av *AVContext) error {
