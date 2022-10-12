@@ -43,6 +43,7 @@ type AVContext struct {
 	codecContext     *C.AVCodecContext
 	thumbContext     *C.ThumbContext
 	frame            *C.AVFrame
+	outputFrame      *C.AVFrame
 	durationInFormat bool
 
 	orientation        int
@@ -51,7 +52,7 @@ type AVContext struct {
 	width, height      int
 	title, artist      string
 	hasVideo, hasAudio bool
-	hasFrame, hasAlpha bool
+	hasAlpha           bool
 	closed             bool
 }
 
@@ -90,11 +91,15 @@ func closeAVContext(av *AVContext) {
 	if av.closed {
 		return
 	}
-	if av.hasFrame {
-		C.av_frame_free(&av.frame)
+	if av.outputFrame != nil {
+		C.av_frame_free(&av.outputFrame)
+	}
+	if av.outputFrame != nil {
+		C.av_frame_free(&av.outputFrame)
 	}
 	if av.thumbContext != nil {
 		C.free_thumb_context(av.thumbContext)
+		av.frame = nil
 	}
 	if av.codecContext != nil {
 		C.avcodec_free_context(&av.codecContext)
@@ -264,22 +269,24 @@ func populateThumbContext(av *AVContext, frames chan *C.AVFrame, done <-chan str
 	if err != 0 && err != C.int(ErrEOF) {
 		return avError(err)
 	}
+	av.frame = C.process_frames(av.thumbContext)
+	if av.frame == nil {
+		return ErrNoMem
+	}
 	return nil
 }
 
 func convertFrameToRGB(av *AVContext) error {
-	outputFrame := C.convert_frame_to_rgb(C.process_frames(av.thumbContext), av.thumbContext.alpha)
-	if outputFrame == nil {
+	av.outputFrame = C.convert_frame_to_rgb(av.frame, av.thumbContext.alpha)
+	if av.outputFrame == nil {
 		return ErrNoMem
 	}
-	av.frame = outputFrame
-	av.hasFrame = true
 	av.hasAlpha = av.thumbContext.alpha != 0
 	return nil
 }
 
 func exportBuffer(av *AVContext) ([]byte, error) {
-	if !av.hasFrame {
+	if av.outputFrame == nil {
 		return nil, ErrInvalidData
 	}
 	size := av.height * av.width
@@ -288,6 +295,6 @@ func exportBuffer(av *AVContext) ([]byte, error) {
 	} else {
 		size *= 3
 	}
-	buf := C.GoBytes(unsafe.Pointer(av.frame.data[0]), C.int(size))
+	buf := C.GoBytes(unsafe.Pointer(av.outputFrame.data[0]), C.int(size))
 	return buf, nil
 }
