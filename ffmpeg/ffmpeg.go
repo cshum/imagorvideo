@@ -74,7 +74,7 @@ func LoadAVContext(ctx context.Context, reader io.Reader, size int64) (*AVContex
 	if !av.hasVideo {
 		return av, nil
 	}
-	if err := createDecoder(av); err == ErrTooBig || err == ErrDecoderNotFound {
+	if err := createDecoder(av); err != nil {
 		return av, err
 	}
 	if err := createThumbContext(av); err != nil {
