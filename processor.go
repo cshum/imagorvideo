@@ -115,7 +115,7 @@ func (p *Processor) Process(ctx context.Context, in *imagor.Blob, params imagorp
 	meta := av.Metadata()
 	if params.Meta {
 		out = imagor.NewBlobFromJsonMarshal(Metadata{
-			Format:      mime.Extension(),
+			Format:      strings.TrimPrefix(mime.Extension(), "."),
 			ContentType: mime.String(),
 			Metadata:    meta,
 		})
