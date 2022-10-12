@@ -42,7 +42,7 @@ type AVContext struct {
 	stream           *C.AVStream
 	codecContext     *C.AVCodecContext
 	thumbContext     *C.ThumbContext
-	frame            *C.AVFrame
+	selectedFrame    *C.AVFrame
 	outputFrame      *C.AVFrame
 	durationInFormat bool
 
@@ -99,7 +99,7 @@ func closeAVContext(av *AVContext) {
 	}
 	if av.thumbContext != nil {
 		C.free_thumb_context(av.thumbContext)
-		av.frame = nil
+		av.selectedFrame = nil
 	}
 	if av.codecContext != nil {
 		C.avcodec_free_context(&av.codecContext)
@@ -269,15 +269,15 @@ func populateThumbContext(av *AVContext, frames chan *C.AVFrame, done <-chan str
 	if err != 0 && err != C.int(ErrEOF) {
 		return avError(err)
 	}
-	av.frame = C.process_frames(av.thumbContext)
-	if av.frame == nil {
+	av.selectedFrame = C.process_frames(av.thumbContext)
+	if av.selectedFrame == nil {
 		return ErrNoMem
 	}
 	return nil
 }
 
 func convertFrameToRGB(av *AVContext) error {
-	av.outputFrame = C.convert_frame_to_rgb(av.frame, av.thumbContext.alpha)
+	av.outputFrame = C.convert_frame_to_rgb(av.selectedFrame, av.thumbContext.alpha)
 	if av.outputFrame == nil {
 		return ErrNoMem
 	}
