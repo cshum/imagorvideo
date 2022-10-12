@@ -69,9 +69,9 @@ func (p *Processor) Process(ctx context.Context, in *imagor.Blob, params imagorp
 		}
 	}()
 	var filters imagorpath.Filters
-	var mime = mimetype.Detect(in.Sniff()).String()
-	if !strings.HasPrefix(mime, "video/") &&
-		!strings.HasPrefix(mime, "audio/") {
+	var mime = mimetype.Detect(in.Sniff())
+	if typ := mime.String(); !strings.HasPrefix(typ, "video/") &&
+		!strings.HasPrefix(typ, "audio/") {
 		// forward identical for non video nor audio
 		err = imagor.ErrForward{Params: params}
 		out = in
@@ -79,17 +79,14 @@ func (p *Processor) Process(ctx context.Context, in *imagor.Blob, params imagorp
 	}
 	var r io.ReadCloser
 	var rs io.ReadSeekCloser
-	var size int64
-	switch mime {
-	case "video/webm", "video/x-matroska":
-		// media types that does not require seek
-		if r, size, err = in.NewReader(); err != nil {
-			return
-		}
-		if size <= 0 {
-			// size must be known
-			_ = r.Close()
-			r = nil
+	var size = in.Size()
+	if size > 0 {
+		switch mime.String() {
+		case "video/webm", "video/x-matroska":
+			// media types that does not require seek
+			if r, _, err = in.NewReader(); err != nil {
+				return
+			}
 		}
 	}
 	if r == nil {
@@ -117,7 +114,11 @@ func (p *Processor) Process(ctx context.Context, in *imagor.Blob, params imagorp
 	defer av.Close()
 	meta := av.Metadata()
 	if params.Meta {
-		out = imagor.NewBlobFromJsonMarshal(meta)
+		out = imagor.NewBlobFromJsonMarshal(Metadata{
+			Format:      mime.Extension(),
+			ContentType: mime.String(),
+			Metadata:    meta,
+		})
 		return
 	}
 	switch meta.Orientation {
@@ -147,6 +148,12 @@ func (p *Processor) Process(ctx context.Context, in *imagor.Blob, params imagorp
 	}
 	err = imagor.ErrForward{Params: params}
 	return
+}
+
+type Metadata struct {
+	Format      string `json:"format"`
+	ContentType string `json:"content_type"`
+	*ffmpeg.Metadata
 }
 
 var transPixel = []byte("\x47\x49\x46\x38\x39\x61\x01\x00\x01\x00\x80\x00\x00\x00\x00\x00\x00\x00\x00\x21\xF9\x04\x01\x00\x00\x00\x00\x2C\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02\x44\x01\x00\x3B")
