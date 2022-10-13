@@ -84,9 +84,9 @@ func LoadAVContext(ctx context.Context, reader io.Reader, size int64) (*AVContex
 	return av, nil
 }
 
-func (av *AVContext) ProcessFrames() (err error) {
+func (av *AVContext) ProcessFrames(maxFrames int) (err error) {
 	if av.thumbContext == nil {
-		return createThumbContext(av)
+		return createThumbContext(av, C.int(maxFrames))
 	}
 	return
 }
@@ -101,7 +101,7 @@ func (av *AVContext) SelectFrame(n int) (err error) {
 }
 
 func (av *AVContext) Export(bands int) (buf []byte, err error) {
-	if err = av.ProcessFrames(); err != nil {
+	if err = av.ProcessFrames(-1); err != nil {
 		return
 	}
 	if bands < 3 || bands > 4 {
@@ -245,7 +245,7 @@ func populateHistogram(av *AVContext, frames <-chan *C.AVFrame) <-chan struct{} 
 	return done
 }
 
-func createThumbContext(av *AVContext) error {
+func createThumbContext(av *AVContext, maxFrames C.int) error {
 	pkt := C.create_packet()
 	var frame *C.AVFrame
 	err := C.obtain_next_frame(av.formatContext, av.codecContext, av.stream.index, &pkt, &frame)
@@ -266,6 +266,9 @@ func createThumbContext(av *AVContext) error {
 		return avError(err)
 	}
 	n := av.thumbContext.max_frames
+	if maxFrames > 0 && n > maxFrames {
+		n = maxFrames
+	}
 	if av.selectedIndex > -1 && n > av.selectedIndex+1 {
 		n = av.selectedIndex + 1
 	}
