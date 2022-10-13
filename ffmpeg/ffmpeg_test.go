@@ -3,6 +3,7 @@ package ffmpeg
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"github.com/cshum/imagor/vips"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -47,41 +48,48 @@ func TestAVContext(t *testing.T) {
 	require.NoError(t, os.MkdirAll(baseDir+"golden/export", 0755))
 	t.Parallel()
 	for _, filename := range files {
-		t.Run(filename, func(t *testing.T) {
-			ctx := context.Background()
-			path := baseDir + filename
-			reader, err := os.Open(path)
-			require.NoError(t, err)
-			stats, err := os.Stat(path)
-			require.NoError(t, err)
-			av, err := LoadAVContext(ctx, reader, stats.Size())
-			require.NoError(t, err)
-			defer av.Close()
-			err = av.ProcessFrames()
-			require.NoError(t, err)
-			meta := av.Metadata()
-			metaBuf, err := json.Marshal(meta)
-			require.NoError(t, err)
-			goldenFile := baseDir + "golden/meta/" + filename + ".meta.json"
-			if curr, err := os.ReadFile(goldenFile); err == nil {
-				assert.Equal(t, string(curr), string(metaBuf))
-			} else {
-				require.NoError(t, os.WriteFile(goldenFile, metaBuf, 0666))
+		for _, frame := range []int{-1, 5, 99999} {
+			name := filename
+			if frame > -1 {
+				name = fmt.Sprintf("%s-%d", filename, frame)
 			}
-			bands := 4
-			buf, err := av.Export(bands)
-			require.NoError(t, err)
-			img, err := vips.LoadImageFromMemory(buf, meta.Width, meta.Height, bands)
-			require.NoError(t, err)
-			buf, err = img.ExportJpeg(nil)
-			require.NoError(t, err)
-			goldenFile = baseDir + "golden/export/" + filename + ".jpg"
-			if curr, err := os.ReadFile(goldenFile); err == nil {
-				assert.True(t, reflect.DeepEqual(curr, buf))
-			} else {
-				require.NoError(t, os.WriteFile(goldenFile, buf, 0666))
-			}
-
-		})
+			t.Run(name, func(t *testing.T) {
+				ctx := context.Background()
+				path := baseDir + filename
+				reader, err := os.Open(path)
+				require.NoError(t, err)
+				stats, err := os.Stat(path)
+				require.NoError(t, err)
+				av, err := LoadAVContext(ctx, reader, stats.Size())
+				require.NoError(t, err)
+				defer av.Close()
+				require.NoError(t, av.ProcessFrames())
+				if frame > -1 {
+					require.NoError(t, av.SelectFrame(frame))
+				}
+				meta := av.Metadata()
+				metaBuf, err := json.Marshal(meta)
+				require.NoError(t, err)
+				goldenFile := baseDir + "golden/meta/" + name + ".meta.json"
+				if curr, err := os.ReadFile(goldenFile); err == nil {
+					assert.Equal(t, string(curr), string(metaBuf))
+				} else {
+					require.NoError(t, os.WriteFile(goldenFile, metaBuf, 0666))
+				}
+				bands := 4
+				buf, err := av.Export(bands)
+				require.NoError(t, err)
+				img, err := vips.LoadImageFromMemory(buf, meta.Width, meta.Height, bands)
+				require.NoError(t, err)
+				buf, err = img.ExportJpeg(nil)
+				require.NoError(t, err)
+				goldenFile = baseDir + "golden/export/" + name + ".jpg"
+				if curr, err := os.ReadFile(goldenFile); err == nil {
+					assert.True(t, reflect.DeepEqual(curr, buf))
+				} else {
+					require.NoError(t, os.WriteFile(goldenFile, buf, 0666))
+				}
+			})
+		}
 	}
 }
