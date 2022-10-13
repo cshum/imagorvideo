@@ -37,7 +37,7 @@ imagorvideo then converts the selected frame to RGB image data, forwards to the 
 
 ### Filters
 
-imagorvideo supports the following filters:
+imagorvideo supports the following filters, which can be used in conjunction with [imagor filters](https://github.com/cshum/imagor#filters):
 
 - `frame(n)` specifying the frame index `n` for imaging. This allows skipping the default automatic selection, which involves computing root-mean-square error (RMSE) of histogram frames data.
 - `max_frames(n)` restrict the maximum number of frames allocated for image selection. The smaller the number, the faster the processing time.
@@ -71,7 +71,7 @@ http://localhost:8000/unsafe/meta/https://test-videos.co.uk/vids/bigbuckbunny/mp
   "has_audio": false
 }
 ```
-Appending the `max_frames()` or `frame(n)` filter however, would trigger the frames processing. This results more processing time but also allows retrieving more frame related info, such as frames per second `fps` and selected frame index. Example:
+Appending the `max_frames()` or `frame(n)` filter however, would activate frame processing. This results more processing time but would also allows retrieving frame related info such as frames per second `fps` and selected frame index. Example:
 
 ```
 http://localhost:8000/unsafe/meta/filters:max_frames()/https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/1080/Big_Buck_Bunny_1080_10s_30MB.mp4
