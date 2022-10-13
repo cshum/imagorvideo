@@ -23,15 +23,16 @@ const (
 )
 
 type Metadata struct {
-	Orientation int    `json:"orientation"`
-	Duration    int    `json:"duration,omitempty"`
-	Width       int    `json:"width,omitempty"`
-	Height      int    `json:"height,omitempty"`
-	Title       string `json:"title,omitempty"`
-	Artist      string `json:"artist,omitempty"`
-	FPS         int    `json:"fps,omitempty"`
-	HasVideo    bool   `json:"has_video"`
-	HasAudio    bool   `json:"has_audio"`
+	Orientation   int    `json:"orientation"`
+	Duration      int    `json:"duration,omitempty"`
+	Width         int    `json:"width,omitempty"`
+	Height        int    `json:"height,omitempty"`
+	Title         string `json:"title,omitempty"`
+	Artist        string `json:"artist,omitempty"`
+	FPS           int    `json:"fps,omitempty"`
+	SelectedFrame int    `json:"selected_frame,omitempty"`
+	HasVideo      bool   `json:"has_video"`
+	HasAudio      bool   `json:"has_audio"`
 }
 
 type AVContext struct {
@@ -49,8 +50,8 @@ type AVContext struct {
 	orientation        int
 	size               int64
 	duration           time.Duration
-	indexAt            C.int
-	durationAt         time.Duration
+	availableIndex     C.int
+	availableDuration  time.Duration
 	width, height      int
 	title, artist      string
 	hasVideo, hasAudio bool
@@ -90,12 +91,18 @@ func (av *AVContext) ProcessFrames() (err error) {
 	return
 }
 
+func (av *AVContext) SelectFrame(n int) (err error) {
+	nn := C.int(n)
+	if av.thumbContext != nil && nn >= av.thumbContext.n {
+		nn = av.thumbContext.n - 1
+	}
+	av.selectedIndex = nn
+	return nil
+}
+
 func (av *AVContext) Export(bands int) (buf []byte, err error) {
 	if err = av.ProcessFrames(); err != nil {
 		return
-	}
-	if av.selectedIndex < 0 {
-		findBestFrameIndex(av)
 	}
 	if bands < 3 || bands > 4 {
 		bands = 3
@@ -112,19 +119,24 @@ func (av *AVContext) Close() {
 
 func (av *AVContext) Metadata() *Metadata {
 	var fps float64
-	if av.durationAt > 0 {
-		fps = float64(av.indexAt) * float64(time.Second) / float64(av.durationAt)
+	if av.availableDuration > 0 {
+		fps = float64(av.availableIndex) * float64(time.Second) / float64(av.availableDuration)
+	}
+	var selectedFrame int
+	if av.availableIndex > 0 && av.selectedIndex > -1 {
+		selectedFrame = int(av.selectedIndex)
 	}
 	return &Metadata{
-		Orientation: av.orientation,
-		Duration:    int(av.duration / time.Millisecond),
-		Width:       av.width,
-		Height:      av.height,
-		Title:       av.title,
-		Artist:      av.artist,
-		FPS:         int(math.Round(fps)),
-		HasVideo:    av.hasVideo,
-		HasAudio:    av.hasAudio,
+		Orientation:   av.orientation,
+		Duration:      int(av.duration / time.Millisecond),
+		Width:         av.width,
+		Height:        av.height,
+		Title:         av.title,
+		Artist:        av.artist,
+		FPS:           int(math.Round(fps)),
+		SelectedFrame: selectedFrame,
+		HasVideo:      av.hasVideo,
+		HasAudio:      av.hasAudio,
 	}
 }
 
@@ -207,11 +219,11 @@ func createDecoder(av *AVContext) error {
 }
 
 func incrementDuration(av *AVContext, frame *C.AVFrame, i C.int) {
-	av.indexAt = i
+	av.availableIndex = i
 	if frame.pts != C.AV_NOPTS_VALUE {
 		ptsToNano := C.int64_t(1000000000 * av.stream.time_base.num / av.stream.time_base.den)
 		newDuration := time.Duration(frame.pts * ptsToNano)
-		av.durationAt = newDuration
+		av.availableDuration = newDuration
 		if !av.durationInFormat && newDuration > av.duration {
 			av.duration = newDuration
 		}
@@ -253,20 +265,24 @@ func createThumbContext(av *AVContext) error {
 		}
 		return avError(err)
 	}
-	frames := make(chan *C.AVFrame, av.thumbContext.max_frames)
+	n := av.thumbContext.max_frames
+	if av.selectedIndex > -1 && n > av.selectedIndex+1 {
+		n = av.selectedIndex + 1
+	}
+	frames := make(chan *C.AVFrame, n)
 	done := populateHistogram(av, frames)
 	frames <- frame
 	if pkt.buf != nil {
 		C.av_packet_unref(&pkt)
 	}
-	return populateThumbContext(av, frames, done)
+	return populateThumbContext(av, frames, n, done)
 }
 
-func populateThumbContext(av *AVContext, frames chan *C.AVFrame, done <-chan struct{}) error {
+func populateThumbContext(av *AVContext, frames chan *C.AVFrame, n C.int, done <-chan struct{}) error {
 	pkt := C.create_packet()
 	var frame *C.AVFrame
 	var err C.int
-	for i := C.int(1); i < av.thumbContext.max_frames; i++ {
+	for i := C.int(1); i < n; i++ {
 		err = C.obtain_next_frame(av.formatContext, av.codecContext, av.stream.index, &pkt, &frame)
 		if err < 0 {
 			break
@@ -274,6 +290,9 @@ func populateThumbContext(av *AVContext, frames chan *C.AVFrame, done <-chan str
 		incrementDuration(av, frame, i)
 		frames <- frame
 		frame = nil
+	}
+	if av.selectedIndex > av.availableIndex {
+		av.selectedIndex = av.availableIndex
 	}
 	close(frames)
 	if pkt.buf != nil {
@@ -286,11 +305,10 @@ func populateThumbContext(av *AVContext, frames chan *C.AVFrame, done <-chan str
 	if err != 0 && err != C.int(ErrEOF) {
 		return avError(err)
 	}
+	if av.selectedIndex < 0 {
+		av.selectedIndex = C.find_best_frame_index(av.thumbContext)
+	}
 	return nil
-}
-
-func findBestFrameIndex(av *AVContext) {
-	av.selectedIndex = C.find_best_frame_index(av.thumbContext)
 }
 
 func convertFrameToRGB(av *AVContext, bands int) error {
