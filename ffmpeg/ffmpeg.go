@@ -93,8 +93,8 @@ func (av *AVContext) ProcessFrames(maxFrames int) (err error) {
 
 func (av *AVContext) SelectFrame(n int) (err error) {
 	nn := C.int(n)
-	if av.thumbContext != nil && nn >= av.thumbContext.n {
-		nn = av.thumbContext.n - 1
+	if av.thumbContext != nil && nn > av.availableIndex {
+		nn = av.availableIndex
 	}
 	av.selectedIndex = nn
 	if err = av.ProcessFrames(-1); err != nil {
