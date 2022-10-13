@@ -63,10 +63,10 @@ func TestAVContext(t *testing.T) {
 				av, err := LoadAVContext(ctx, reader, stats.Size())
 				require.NoError(t, err)
 				defer av.Close()
-				require.NoError(t, av.ProcessFrames())
 				if frame > -1 {
 					require.NoError(t, av.SelectFrame(frame))
 				}
+				require.NoError(t, av.ProcessFrames())
 				meta := av.Metadata()
 				metaBuf, err := json.Marshal(meta)
 				require.NoError(t, err)
