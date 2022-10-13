@@ -55,6 +55,8 @@ func TestProcessor(t *testing.T) {
 		{name: "image", path: "fit-in/100x100/demo.png"},
 		{name: "alpha", path: "fit-in/filters:format(png)/alpha-webm.webm"},
 		{name: "corrupted", path: "fit-in/100x100/corrupt/everybody-betray-me.mkv", expectCode: 406},
+		{name: "no cover meta", path: "meta/no_cover.mp3"},
+		{name: "no cover 406", path: "fit-in/100x100/no_cover.mp3", expectCode: 406},
 	}, WithDebug(true), WithLogger(zap.NewExample()))
 	doGoldenTests(t, filepath.Join(testDataDir, "golden/result-fallback-image"), []test{
 		{name: "corrupted with fallback image", path: "fit-in/100x100/corrupt/everybody-betray-me.mkv", expectCode: 406},
