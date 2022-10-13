@@ -30,6 +30,7 @@ type Metadata struct {
 	Title       string `json:"title,omitempty"`
 	Artist      string `json:"artist,omitempty"`
 	FPS         int    `json:"fps,omitempty"`
+	Frame       int    `json:"frame,omitempty"`
 	HasVideo    bool   `json:"has_video"`
 	HasAudio    bool   `json:"has_audio"`
 }
@@ -103,9 +104,6 @@ func (av *AVContext) Export(bands int) (buf []byte, err error) {
 	if err = av.ProcessFrames(); err != nil {
 		return
 	}
-	if av.selectedIndex < 0 {
-		findBestFrameIndex(av)
-	}
 	if bands < 3 || bands > 4 {
 		bands = 3
 	}
@@ -124,6 +122,10 @@ func (av *AVContext) Metadata() *Metadata {
 	if av.durationAt > 0 {
 		fps = float64(av.indexAt) * float64(time.Second) / float64(av.durationAt)
 	}
+	var selectedFrame int
+	if av.selectedIndex > -1 {
+		selectedFrame = int(av.selectedIndex)
+	}
 	return &Metadata{
 		Orientation: av.orientation,
 		Duration:    int(av.duration / time.Millisecond),
@@ -132,6 +134,7 @@ func (av *AVContext) Metadata() *Metadata {
 		Title:       av.title,
 		Artist:      av.artist,
 		FPS:         int(math.Round(fps)),
+		Frame:       selectedFrame,
 		HasVideo:    av.hasVideo,
 		HasAudio:    av.hasAudio,
 	}
@@ -262,20 +265,26 @@ func createThumbContext(av *AVContext) error {
 		}
 		return avError(err)
 	}
-	frames := make(chan *C.AVFrame, av.thumbContext.max_frames)
+	n := av.thumbContext.max_frames
+	if av.selectedIndex > -1 {
+		if av.selectedIndex < n {
+			n = av.selectedIndex + 1
+		}
+	}
+	frames := make(chan *C.AVFrame, n)
 	done := populateHistogram(av, frames)
 	frames <- frame
 	if pkt.buf != nil {
 		C.av_packet_unref(&pkt)
 	}
-	return populateThumbContext(av, frames, done)
+	return populateThumbContext(av, frames, n, done)
 }
 
-func populateThumbContext(av *AVContext, frames chan *C.AVFrame, done <-chan struct{}) error {
+func populateThumbContext(av *AVContext, frames chan *C.AVFrame, n C.int, done <-chan struct{}) error {
 	pkt := C.create_packet()
 	var frame *C.AVFrame
 	var err C.int
-	for i := C.int(1); i < av.thumbContext.max_frames; i++ {
+	for i := C.int(1); i < n; i++ {
 		err = C.obtain_next_frame(av.formatContext, av.codecContext, av.stream.index, &pkt, &frame)
 		if err < 0 {
 			break
@@ -283,6 +292,9 @@ func populateThumbContext(av *AVContext, frames chan *C.AVFrame, done <-chan str
 		incrementDuration(av, frame, i)
 		frames <- frame
 		frame = nil
+	}
+	if av.selectedIndex > av.indexAt {
+		av.selectedIndex = av.indexAt
 	}
 	close(frames)
 	if pkt.buf != nil {
@@ -295,11 +307,10 @@ func populateThumbContext(av *AVContext, frames chan *C.AVFrame, done <-chan str
 	if err != 0 && err != C.int(ErrEOF) {
 		return avError(err)
 	}
+	if av.selectedIndex < 0 {
+		av.selectedIndex = C.find_best_frame_index(av.thumbContext)
+	}
 	return nil
-}
-
-func findBestFrameIndex(av *AVContext) {
-	av.selectedIndex = C.find_best_frame_index(av.thumbContext)
 }
 
 func convertFrameToRGB(av *AVContext, bands int) error {
