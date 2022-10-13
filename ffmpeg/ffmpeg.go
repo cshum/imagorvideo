@@ -58,9 +58,10 @@ type AVContext struct {
 
 func LoadAVContext(ctx context.Context, reader io.Reader, size int64) (*AVContext, error) {
 	av := &AVContext{
-		context: ctx,
-		reader:  reader,
-		size:    size,
+		context:       ctx,
+		reader:        reader,
+		size:          size,
+		selectedIndex: -1,
 	}
 	if seeker, ok := reader.(io.Seeker); ok {
 		av.seeker = seeker
@@ -78,9 +79,6 @@ func LoadAVContext(ctx context.Context, reader io.Reader, size int64) (*AVContex
 	if err := createDecoder(av); err != nil {
 		return av, err
 	}
-	if err := createThumbContext(av); err != nil {
-		return av, err
-	}
 	return av, nil
 }
 
@@ -93,14 +91,13 @@ func LoadAVContext(ctx context.Context, reader io.Reader, size int64) (*AVContex
 //}
 
 func (av *AVContext) Export(bands int) (buf []byte, err error) {
-	if av.thumbContext == nil {
-		err = ErrInvalidData
-		return
-	}
 	if bands < 3 || bands > 4 {
 		bands = 3
 	}
-	if av.selectedIndex == 0 {
+	if err = createThumbContext(av); err != nil {
+		return
+	}
+	if av.selectedIndex < 0 {
 		findBestFrameIndex(av)
 	}
 	if err = convertFrameToRGB(av, bands); err != nil {
