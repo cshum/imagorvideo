@@ -49,7 +49,9 @@ http://localhost:8000/unsafe/300x0/7x7/filters:max_frames(70):fill(yellow)/http:
 
 ### Metadata
 
-imagor provides metadata endpoint that extracts video metadata, dimension and duration data. By default, it only process the header without extracting the frame data, which result faster processing speed:
+imagor provides metadata endpoint that extracts video metadata, dimension and duration data. By default, it only process the header without extracting the frame data, which result faster processing speed.
+
+To use the metadata endpoint, add /meta right after the URL signature hash before the image operations. Example:
 
 ```
 http://localhost:8000/unsafe/meta/https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/1080/Big_Buck_Bunny_1080_10s_30MB.mp4
@@ -90,7 +92,7 @@ Appending the `max_frame()` filter however, would trigger the frames processing.
 
 ### Configuration
 
-Config options specific to imagorvideo. Please refer to [imagor](https://github.com/cshum/imagor#configuration) for all existing options supported.
+Config options specific to imagorvideo. Please refer to [imagor configuration](https://github.com/cshum/imagor#configuration) for all existing options supported.
 
 ```
   -ffmpeg-fallback-image string
