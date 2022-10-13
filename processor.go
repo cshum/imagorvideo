@@ -117,12 +117,12 @@ func (p *Processor) Process(ctx context.Context, in *imagor.Blob, params imagorp
 	for _, filter := range params.Filters {
 		switch filter.Name {
 		case "format":
-			if s := strings.ToLower(filter.Args); s == "webp" || s == "png" {
+			switch strings.ToLower(filter.Args) {
+			case "webp", "png", "gif":
 				switch mime.Extension() {
 				case ".webm", ".flv", ".mov", ".avi":
 					bands = 4
 				}
-				break
 			}
 		case "process_frames":
 			if err = av.ProcessFrames(); err != nil {
