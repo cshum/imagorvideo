@@ -124,14 +124,14 @@ func (p *Processor) Process(ctx context.Context, in *imagor.Blob, params imagorp
 					bands = 4
 				}
 			}
-		case "max_frames":
-			n, _ := strconv.Atoi(filter.Args)
-			if err = av.ProcessFrames(n); err != nil {
-				return
-			}
 		case "frame":
 			n, _ := strconv.Atoi(filter.Args)
 			if err = av.SelectFrame(n); err != nil {
+				return
+			}
+		case "max_frames":
+			n, _ := strconv.Atoi(filter.Args)
+			if err = av.ProcessFrames(n); err != nil {
 				return
 			}
 		}
