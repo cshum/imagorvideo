@@ -28,6 +28,7 @@ type Metadata struct {
 	Height      int    `json:"height,omitempty"`
 	Title       string `json:"title,omitempty"`
 	Artist      string `json:"artist,omitempty"`
+	FPS         int    `json:"fps,omitempty"`
 	HasVideo    bool   `json:"has_video"`
 	HasAudio    bool   `json:"has_audio"`
 	HasAlpha    bool   `json:"has_alpha"`
@@ -49,6 +50,8 @@ type AVContext struct {
 	orientation        int
 	size               int64
 	duration           time.Duration
+	frameAt            int
+	durationAt         time.Duration
 	width, height      int
 	title, artist      string
 	hasVideo, hasAudio bool
@@ -115,6 +118,10 @@ func (av *AVContext) Close() {
 }
 
 func (av *AVContext) Metadata() *Metadata {
+	var fps float64
+	if av.durationAt > 0 {
+		fps = float64(av.frameAt) * float64(time.Second) / float64(av.durationAt)
+	}
 	return &Metadata{
 		Orientation: av.orientation,
 		Duration:    int(av.duration / time.Millisecond),
@@ -122,6 +129,7 @@ func (av *AVContext) Metadata() *Metadata {
 		Height:      av.height,
 		Title:       av.title,
 		Artist:      av.artist,
+		FPS:         int(fps),
 		HasVideo:    av.hasVideo,
 		HasAudio:    av.hasAudio,
 		HasAlpha:    av.hasAlpha,
@@ -187,11 +195,13 @@ func createDecoder(av *AVContext) error {
 	return nil
 }
 
-func incrementDuration(av *AVContext, frame *C.AVFrame) {
-	if !av.durationInFormat && frame.pts != C.AV_NOPTS_VALUE {
+func incrementDuration(av *AVContext, frame *C.AVFrame, i int) {
+	av.frameAt = i
+	if frame.pts != C.AV_NOPTS_VALUE {
 		ptsToNano := C.int64_t(1000000000 * av.stream.time_base.num / av.stream.time_base.den)
 		newDuration := time.Duration(frame.pts * ptsToNano)
-		if newDuration > av.duration {
+		av.durationAt = newDuration
+		if !av.durationInFormat && newDuration > av.duration {
 			av.duration = newDuration
 		}
 	}
@@ -217,7 +227,7 @@ func createThumbContext(av *AVContext) error {
 	var frame *C.AVFrame
 	err := C.obtain_next_frame(av.formatContext, av.codecContext, av.stream.index, &pkt, &frame)
 	if err >= 0 {
-		incrementDuration(av, frame)
+		incrementDuration(av, frame, 0)
 		av.thumbContext = C.create_thumb_context(av.stream, frame)
 		if av.thumbContext == nil {
 			err = C.int(ErrNoMem)
@@ -250,7 +260,7 @@ func populateThumbContext(av *AVContext, frames chan *C.AVFrame, done <-chan str
 		if err < 0 {
 			break
 		}
-		incrementDuration(av, frame)
+		incrementDuration(av, frame, int(i))
 		frames <- frame
 		frame = nil
 	}
