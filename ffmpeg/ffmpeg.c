@@ -420,10 +420,17 @@ void populate_histogram(ThumbContext *thumb_ctx, int n, AVFrame *frame) {
     }
 }
 
-static AVFrame *get_best_frame(ThumbContext *thumb_ctx) {
+static int *get_best_frame(ThumbContext *thumb_ctx) {
+    int i, j, n = 0, m = thumb_ctx->n, *hist = NULL;
+    double *median = thumb_ctx->median;
+    for (j = 0; j < m; j++) {
+        hist = thumb_ctx->frames[j].hist;
+        for (i = 0; i < thumb_ctx->hist_size; i++) {
+            median[i] += (double) hist[i] / m;
+        }
+    }
     struct thumb_frame *t_frame = NULL;
     double min_sum_sq_err = DBL_MAX, sum_sq_err = 0;
-    int i, n = 0;
     for (i = 0; i < thumb_ctx->n; i++) {
         t_frame = thumb_ctx->frames + i;
         sum_sq_err = root_mean_square_error(t_frame->hist, thumb_ctx->median, thumb_ctx->hist_size);
@@ -432,21 +439,14 @@ static AVFrame *get_best_frame(ThumbContext *thumb_ctx) {
             n = i;
         }
     }
+    return n;
+}
+
+AVFrame *process_frames(ThumbContext *thumb_ctx) {
+    int n = get_best_frame(thumb_ctx);
     thumb_ctx->alpha = alpha_check(
       thumb_ctx->frames[n].frame,
       thumb_ctx->desc->flags,
       thumb_ctx->frames[n].hist[thumb_ctx->hist_size - 1]);
     return thumb_ctx->frames[n].frame;
-}
-
-AVFrame *process_frames(ThumbContext *thumb_ctx) {
-    int i, j, *hist = NULL, n = thumb_ctx->n;
-    double *median = thumb_ctx->median;
-    for (j = 0; j < n; j++) {
-        hist = thumb_ctx->frames[j].hist;
-        for (i = 0; i < thumb_ctx->hist_size; i++) {
-            median[i] += (double) hist[i] / n;
-        }
-    }
-    return get_best_frame(thumb_ctx);
 }
