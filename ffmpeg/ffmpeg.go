@@ -50,8 +50,8 @@ type AVContext struct {
 	orientation        int
 	size               int64
 	duration           time.Duration
-	indexAt            C.int
-	durationAt         time.Duration
+	availableIndex     C.int
+	availableDuration  time.Duration
 	width, height      int
 	title, artist      string
 	hasVideo, hasAudio bool
@@ -119,11 +119,11 @@ func (av *AVContext) Close() {
 
 func (av *AVContext) Metadata() *Metadata {
 	var fps float64
-	if av.durationAt > 0 {
-		fps = float64(av.indexAt) * float64(time.Second) / float64(av.durationAt)
+	if av.availableDuration > 0 {
+		fps = float64(av.availableIndex) * float64(time.Second) / float64(av.availableDuration)
 	}
 	var selectedFrame int
-	if av.selectedIndex > -1 {
+	if av.availableIndex > 0 && av.selectedIndex > -1 {
 		selectedFrame = int(av.selectedIndex)
 	}
 	return &Metadata{
@@ -219,11 +219,11 @@ func createDecoder(av *AVContext) error {
 }
 
 func incrementDuration(av *AVContext, frame *C.AVFrame, i C.int) {
-	av.indexAt = i
+	av.availableIndex = i
 	if frame.pts != C.AV_NOPTS_VALUE {
 		ptsToNano := C.int64_t(1000000000 * av.stream.time_base.num / av.stream.time_base.den)
 		newDuration := time.Duration(frame.pts * ptsToNano)
-		av.durationAt = newDuration
+		av.availableDuration = newDuration
 		if !av.durationInFormat && newDuration > av.duration {
 			av.duration = newDuration
 		}
@@ -266,10 +266,8 @@ func createThumbContext(av *AVContext) error {
 		return avError(err)
 	}
 	n := av.thumbContext.max_frames
-	if av.selectedIndex > -1 {
-		if av.selectedIndex < n {
-			n = av.selectedIndex + 1
-		}
+	if av.selectedIndex > -1 && n > av.selectedIndex+1 {
+		n = av.selectedIndex + 1
 	}
 	frames := make(chan *C.AVFrame, n)
 	done := populateHistogram(av, frames)
@@ -293,8 +291,8 @@ func populateThumbContext(av *AVContext, frames chan *C.AVFrame, n C.int, done <
 		frames <- frame
 		frame = nil
 	}
-	if av.selectedIndex > av.indexAt {
-		av.selectedIndex = av.indexAt
+	if av.selectedIndex > av.availableIndex {
+		av.selectedIndex = av.availableIndex
 	}
 	close(frames)
 	if pkt.buf != nil {
