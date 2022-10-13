@@ -90,6 +90,15 @@ func (av *AVContext) ProcessFrames() (err error) {
 	return
 }
 
+func (av *AVContext) SelectFrame(n int) (err error) {
+	nn := C.int(n)
+	if av.thumbContext != nil && nn >= av.thumbContext.n {
+		nn = av.thumbContext.n - 1
+	}
+	av.selectedIndex = nn
+	return nil
+}
+
 func (av *AVContext) Export(bands int) (buf []byte, err error) {
 	if err = av.ProcessFrames(); err != nil {
 		return

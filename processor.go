@@ -8,6 +8,7 @@ import (
 	"github.com/gabriel-vasile/mimetype"
 	"go.uber.org/zap"
 	"io"
+	"strconv"
 	"strings"
 )
 
@@ -125,6 +126,11 @@ func (p *Processor) Process(ctx context.Context, in *imagor.Blob, params imagorp
 			}
 		case "process_frames":
 			if err = av.ProcessFrames(); err != nil {
+				return
+			}
+		case "frame":
+			n, _ := strconv.Atoi(filter.Args)
+			if err = av.SelectFrame(n); err != nil {
 				return
 			}
 		}
