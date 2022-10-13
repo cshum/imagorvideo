@@ -125,7 +125,8 @@ func (p *Processor) Process(ctx context.Context, in *imagor.Blob, params imagorp
 				}
 			}
 		case "process_frames":
-			if err = av.ProcessFrames(); err != nil {
+			n, _ := strconv.Atoi(filter.Args)
+			if err = av.ProcessFrames(n); err != nil {
 				return
 			}
 		case "frame":
