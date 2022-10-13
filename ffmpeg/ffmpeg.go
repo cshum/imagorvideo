@@ -103,17 +103,12 @@ func closeAVContext(av *AVContext) {
 	}
 }
 
-func (av *AVContext) SelectBestFrame() (err error) {
-	if av.thumbContext == nil {
-		return ErrInvalidData
-	}
-	findBestFrameIndex(av)
-	return nil
-}
-
 func (av *AVContext) Export(bands int) (buf []byte, err error) {
 	if bands < 3 || bands > 4 {
 		bands = 3
+	}
+	if av.frameIndex == 0 {
+		findBestFrameIndex(av)
 	}
 	if err = convertFrameToRGB(av, bands); err != nil {
 		return

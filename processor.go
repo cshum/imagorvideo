@@ -129,7 +129,6 @@ func (p *Processor) Process(ctx context.Context, in *imagor.Blob, params imagorp
 	case 8:
 		filters = append(filters, imagorpath.Filter{Name: "orient", Args: "90"})
 	}
-	_ = av.SelectBestFrame()
 	bands := 3
 	for _, filter := range params.Filters {
 		if filter.Name == "format" {

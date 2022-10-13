@@ -48,6 +48,7 @@ func TestProcessor(t *testing.T) {
 		{name: "mp4 orient 180", path: "200x100/schizo_180.mp4"},
 		{name: "mp4 orient 270", path: "200x100/schizo_270.mp4"},
 		{name: "image", path: "fit-in/100x100/demo.png"},
+		{name: "alpha", path: "fit-in/filters:format(webp)/alpha-webm.webm"},
 		{name: "corrupted", path: "fit-in/100x100/corrupt/everybody-betray-me.mkv", expectCode: 406},
 	}, WithDebug(true), WithLogger(zap.NewExample()))
 	doGoldenTests(t, filepath.Join(testDataDir, "golden/result-fallback-image"), []test{
