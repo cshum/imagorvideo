@@ -48,7 +48,7 @@ func TestAVContext(t *testing.T) {
 	require.NoError(t, os.MkdirAll(baseDir+"golden/export", 0755))
 	t.Parallel()
 	for _, filename := range files {
-		for _, frame := range []int{-1, 5, 99999} {
+		for _, frame := range []int{-1, 5, 9999, 99999} {
 			name := filename
 			if frame > -1 {
 				name = fmt.Sprintf("%s-%d", filename, frame)
@@ -63,10 +63,15 @@ func TestAVContext(t *testing.T) {
 				av, err := LoadAVContext(ctx, reader, stats.Size())
 				require.NoError(t, err)
 				defer av.Close()
+				if frame == 9999 {
+					require.NoError(t, av.ProcessFrames())
+				}
 				if frame > -1 {
 					require.NoError(t, av.SelectFrame(frame))
 				}
-				require.NoError(t, av.ProcessFrames())
+				if frame != 9999 {
+					require.NoError(t, av.ProcessFrames())
+				}
 				meta := av.Metadata()
 				metaBuf, err := json.Marshal(meta)
 				require.NoError(t, err)
