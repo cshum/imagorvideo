@@ -82,6 +82,15 @@ func LoadAVContext(ctx context.Context, reader io.Reader, size int64) (*AVContex
 	return av, nil
 }
 
+func (av *AVContext) ProcessFrames() (err error) {
+	if av.thumbContext == nil {
+		if err = createThumbContext(av); err != nil {
+			return
+		}
+	}
+	return
+}
+
 //
 //func (av *AVContext) SelectFrame(n int) (err error) {
 //	if av.thumbContext == nil || av.thumbContext.max_frames {
@@ -94,8 +103,10 @@ func (av *AVContext) Export(bands int) (buf []byte, err error) {
 	if bands < 3 || bands > 4 {
 		bands = 3
 	}
-	if err = createThumbContext(av); err != nil {
-		return
+	if av.thumbContext == nil {
+		if err = createThumbContext(av); err != nil {
+			return
+		}
 	}
 	if av.selectedIndex < 0 {
 		findBestFrameIndex(av)
