@@ -269,6 +269,7 @@ func populateThumbContext(av *AVContext, frames chan *C.AVFrame, done <-chan str
 	if av.selectedFrame == nil {
 		return ErrNoMem
 	}
+	av.hasAlpha = av.thumbContext.alpha != 0
 	return nil
 }
 
@@ -277,7 +278,6 @@ func convertFrameToRGB(av *AVContext) error {
 	if av.outputFrame == nil {
 		return ErrNoMem
 	}
-	av.hasAlpha = av.thumbContext.alpha != 0
 	return nil
 }
 
