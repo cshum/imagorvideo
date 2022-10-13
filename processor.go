@@ -112,6 +112,23 @@ func (p *Processor) Process(ctx context.Context, in *imagor.Blob, params imagorp
 		return
 	}
 	defer av.Close()
+	bands := 3
+	for _, filter := range params.Filters {
+		switch filter.Name {
+		case "format":
+			if s := strings.ToLower(filter.Args); s == "webp" || s == "png" {
+				switch mime.Extension() {
+				case ".webm", ".flv", ".mov", ".avi":
+					bands = 4
+				}
+				break
+			}
+		case "process_frames":
+			if err = av.ProcessFrames(); err != nil {
+				return
+			}
+		}
+	}
 	meta := av.Metadata()
 	if params.Meta {
 		out = imagor.NewBlobFromJsonMarshal(Metadata{
@@ -129,16 +146,12 @@ func (p *Processor) Process(ctx context.Context, in *imagor.Blob, params imagorp
 	case 8:
 		filters = append(filters, imagorpath.Filter{Name: "orient", Args: "90"})
 	}
-	buf, err := av.Export()
+	buf, err := av.Export(bands)
 	if err != nil || len(buf) == 0 {
 		if err == nil {
 			err = imagor.ErrUnsupportedFormat
 		}
 		return
-	}
-	bands := 3
-	if meta.HasAlpha {
-		bands = 4
 	}
 	out = imagor.NewBlobFromMemory(buf, meta.Width, meta.Height, bands)
 

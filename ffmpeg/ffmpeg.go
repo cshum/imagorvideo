@@ -9,6 +9,7 @@ import (
 	"context"
 	"github.com/cshum/imagor/vips/pointer"
 	"io"
+	"math"
 	"time"
 	"unsafe"
 )
@@ -31,39 +32,37 @@ type Metadata struct {
 	FPS         int    `json:"fps,omitempty"`
 	HasVideo    bool   `json:"has_video"`
 	HasAudio    bool   `json:"has_audio"`
-	HasAlpha    bool   `json:"has_alpha"`
 }
 
 type AVContext struct {
-	context          context.Context
-	opaque           unsafe.Pointer
-	reader           io.Reader
-	seeker           io.Seeker
-	formatContext    *C.AVFormatContext
-	stream           *C.AVStream
-	codecContext     *C.AVCodecContext
-	thumbContext     *C.ThumbContext
-	selectedFrame    *C.AVFrame
-	outputFrame      *C.AVFrame
-	durationInFormat bool
-
+	context            context.Context
+	opaque             unsafe.Pointer
+	reader             io.Reader
+	seeker             io.Seeker
+	formatContext      *C.AVFormatContext
+	stream             *C.AVStream
+	codecContext       *C.AVCodecContext
+	thumbContext       *C.ThumbContext
+	selectedIndex      C.int
+	frame              *C.AVFrame
+	durationInFormat   bool
 	orientation        int
 	size               int64
 	duration           time.Duration
-	frameAt            int
+	indexAt            C.int
 	durationAt         time.Duration
 	width, height      int
 	title, artist      string
 	hasVideo, hasAudio bool
-	hasAlpha           bool
 	closed             bool
 }
 
 func LoadAVContext(ctx context.Context, reader io.Reader, size int64) (*AVContext, error) {
 	av := &AVContext{
-		context: ctx,
-		reader:  reader,
-		size:    size,
+		context:       ctx,
+		reader:        reader,
+		size:          size,
+		selectedIndex: -1,
 	}
 	if seeker, ok := reader.(io.Seeker); ok {
 		av.seeker = seeker
@@ -81,36 +80,30 @@ func LoadAVContext(ctx context.Context, reader io.Reader, size int64) (*AVContex
 	if err := createDecoder(av); err != nil {
 		return av, err
 	}
-	if err := createThumbContext(av); err != nil {
-		return av, err
-	}
-	if err := convertFrameToRGB(av); err != nil {
-		return av, err
-	}
 	return av, nil
 }
 
-func closeAVContext(av *AVContext) {
-	if !av.closed {
-		if av.outputFrame != nil {
-			C.av_frame_free(&av.outputFrame)
-		}
-		if av.thumbContext != nil {
-			C.free_thumb_context(av.thumbContext)
-			av.selectedFrame = nil
-		}
-		if av.codecContext != nil {
-			C.avcodec_free_context(&av.codecContext)
-		}
-		if av.formatContext != nil {
-			C.free_format_context(av.formatContext)
-		}
-		pointer.Unref(av.opaque)
+func (av *AVContext) ProcessFrames() (err error) {
+	if av.thumbContext == nil {
+		return createThumbContext(av)
 	}
+	return
 }
 
-func (av *AVContext) Export() (buf []byte, err error) {
-	return exportBuffer(av)
+func (av *AVContext) Export(bands int) (buf []byte, err error) {
+	if err = av.ProcessFrames(); err != nil {
+		return
+	}
+	if av.selectedIndex < 0 {
+		findBestFrameIndex(av)
+	}
+	if bands < 3 || bands > 4 {
+		bands = 3
+	}
+	if err = convertFrameToRGB(av, bands); err != nil {
+		return
+	}
+	return exportBuffer(av, bands)
 }
 
 func (av *AVContext) Close() {
@@ -120,7 +113,7 @@ func (av *AVContext) Close() {
 func (av *AVContext) Metadata() *Metadata {
 	var fps float64
 	if av.durationAt > 0 {
-		fps = float64(av.frameAt) * float64(time.Second) / float64(av.durationAt)
+		fps = float64(av.indexAt) * float64(time.Second) / float64(av.durationAt)
 	}
 	return &Metadata{
 		Orientation: av.orientation,
@@ -129,10 +122,28 @@ func (av *AVContext) Metadata() *Metadata {
 		Height:      av.height,
 		Title:       av.title,
 		Artist:      av.artist,
-		FPS:         int(fps),
+		FPS:         int(math.Round(fps)),
 		HasVideo:    av.hasVideo,
 		HasAudio:    av.hasAudio,
-		HasAlpha:    av.hasAlpha,
+	}
+}
+
+func closeAVContext(av *AVContext) {
+	if !av.closed {
+		if av.frame != nil {
+			C.av_frame_free(&av.frame)
+		}
+		if av.thumbContext != nil {
+			C.free_thumb_context(av.thumbContext)
+		}
+		if av.codecContext != nil {
+			C.avcodec_free_context(&av.codecContext)
+		}
+		if av.formatContext != nil {
+			C.free_format_context(av.formatContext)
+		}
+		pointer.Unref(av.opaque)
+		av.closed = true
 	}
 }
 
@@ -147,7 +158,7 @@ func createFormatContext(av *AVContext, callbackFlags C.int) error {
 		pointer.Unref(av.opaque)
 		return avError(intErr)
 	}
-	metaData(av)
+	metadata(av)
 	duration(av)
 	err := findStreams(av)
 	if err != nil {
@@ -157,7 +168,7 @@ func createFormatContext(av *AVContext, callbackFlags C.int) error {
 	return err
 }
 
-func metaData(av *AVContext) {
+func metadata(av *AVContext) {
 	var artist, title *C.char
 	C.get_metadata(av.formatContext, &artist, &title)
 	av.artist = C.GoString(artist)
@@ -195,8 +206,8 @@ func createDecoder(av *AVContext) error {
 	return nil
 }
 
-func incrementDuration(av *AVContext, frame *C.AVFrame, i int) {
-	av.frameAt = i
+func incrementDuration(av *AVContext, frame *C.AVFrame, i C.int) {
+	av.indexAt = i
 	if frame.pts != C.AV_NOPTS_VALUE {
 		ptsToNano := C.int64_t(1000000000 * av.stream.time_base.num / av.stream.time_base.den)
 		newDuration := time.Duration(frame.pts * ptsToNano)
@@ -260,7 +271,7 @@ func populateThumbContext(av *AVContext, frames chan *C.AVFrame, done <-chan str
 		if err < 0 {
 			break
 		}
-		incrementDuration(av, frame, int(i))
+		incrementDuration(av, frame, i)
 		frames <- frame
 		frame = nil
 	}
@@ -275,32 +286,31 @@ func populateThumbContext(av *AVContext, frames chan *C.AVFrame, done <-chan str
 	if err != 0 && err != C.int(ErrEOF) {
 		return avError(err)
 	}
-	av.selectedFrame = C.process_frames(av.thumbContext)
-	if av.selectedFrame == nil {
-		return ErrNoMem
-	}
-	av.hasAlpha = av.thumbContext.alpha != 0
 	return nil
 }
 
-func convertFrameToRGB(av *AVContext) error {
-	av.outputFrame = C.convert_frame_to_rgb(av.selectedFrame, av.thumbContext.alpha)
-	if av.outputFrame == nil {
+func findBestFrameIndex(av *AVContext) {
+	av.selectedIndex = C.find_best_frame_index(av.thumbContext)
+}
+
+func convertFrameToRGB(av *AVContext, bands int) error {
+	var alpha int
+	if bands == 4 {
+		alpha = 1
+	}
+	av.frame = C.convert_frame_to_rgb(
+		C.select_frame(av.thumbContext, av.selectedIndex), C.int(alpha))
+	if av.frame == nil {
 		return ErrNoMem
 	}
 	return nil
 }
 
-func exportBuffer(av *AVContext) ([]byte, error) {
-	if av.outputFrame == nil {
+func exportBuffer(av *AVContext, bands int) ([]byte, error) {
+	if av.frame == nil {
 		return nil, ErrInvalidData
 	}
-	size := av.height * av.width
-	if av.hasAlpha {
-		size *= 4
-	} else {
-		size *= 3
-	}
-	buf := C.GoBytes(unsafe.Pointer(av.outputFrame.data[0]), C.int(size))
+	size := av.height * av.width * bands
+	buf := C.GoBytes(unsafe.Pointer(av.frame.data[0]), C.int(size))
 	return buf, nil
 }
