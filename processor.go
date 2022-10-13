@@ -133,7 +133,11 @@ func (p *Processor) Process(ctx context.Context, in *imagor.Blob, params imagorp
 	for _, filter := range params.Filters {
 		if filter.Name == "format" {
 			if s := strings.ToLower(filter.Args); s == "webp" || s == "png" {
-				bands = 4
+				switch mime.Extension() {
+				case ".webm", ".flv", ".mov", ".avi":
+					bands = 4
+				}
+				break
 			}
 		}
 	}
