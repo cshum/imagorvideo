@@ -351,6 +351,10 @@ static double root_mean_square_error(const int *hist, const double *median, size
     return sum_sq_err;
 }
 
+void populate_frame(ThumbContext *thumb_ctx, int n, AVFrame *frame) {
+    thumb_ctx->frames[n].frame = frame;
+}
+
 void populate_histogram(ThumbContext *thumb_ctx, int n, AVFrame *frame) {
     const AVPixFmtDescriptor *desc = thumb_ctx->desc;
     thumb_ctx->frames[n].frame = frame;
