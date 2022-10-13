@@ -67,6 +67,8 @@ func TestAVContext(t *testing.T) {
 			} else {
 				require.NoError(t, os.WriteFile(goldenFile, metaBuf, 0666))
 			}
+			err = av.ProcessFrames()
+			require.NoError(t, err)
 			bands := 4
 			buf, err := av.Export(bands)
 			require.NoError(t, err)
