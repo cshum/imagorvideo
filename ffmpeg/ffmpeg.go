@@ -23,16 +23,16 @@ const (
 )
 
 type Metadata struct {
-	Orientation int    `json:"orientation"`
-	Duration    int    `json:"duration,omitempty"`
-	Width       int    `json:"width,omitempty"`
-	Height      int    `json:"height,omitempty"`
-	Title       string `json:"title,omitempty"`
-	Artist      string `json:"artist,omitempty"`
-	FPS         int    `json:"fps,omitempty"`
-	Frame       int    `json:"frame,omitempty"`
-	HasVideo    bool   `json:"has_video"`
-	HasAudio    bool   `json:"has_audio"`
+	Orientation   int    `json:"orientation"`
+	Duration      int    `json:"duration,omitempty"`
+	Width         int    `json:"width,omitempty"`
+	Height        int    `json:"height,omitempty"`
+	Title         string `json:"title,omitempty"`
+	Artist        string `json:"artist,omitempty"`
+	FPS           int    `json:"fps,omitempty"`
+	SelectedFrame int    `json:"selected_frame,omitempty"`
+	HasVideo      bool   `json:"has_video"`
+	HasAudio      bool   `json:"has_audio"`
 }
 
 type AVContext struct {
@@ -127,16 +127,16 @@ func (av *AVContext) Metadata() *Metadata {
 		selectedFrame = int(av.selectedIndex)
 	}
 	return &Metadata{
-		Orientation: av.orientation,
-		Duration:    int(av.duration / time.Millisecond),
-		Width:       av.width,
-		Height:      av.height,
-		Title:       av.title,
-		Artist:      av.artist,
-		FPS:         int(math.Round(fps)),
-		Frame:       selectedFrame,
-		HasVideo:    av.hasVideo,
-		HasAudio:    av.hasAudio,
+		Orientation:   av.orientation,
+		Duration:      int(av.duration / time.Millisecond),
+		Width:         av.width,
+		Height:        av.height,
+		Title:         av.title,
+		Artist:        av.artist,
+		FPS:           int(math.Round(fps)),
+		SelectedFrame: selectedFrame,
+		HasVideo:      av.hasVideo,
+		HasAudio:      av.hasAudio,
 	}
 }
 
