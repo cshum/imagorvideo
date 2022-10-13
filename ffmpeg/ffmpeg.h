@@ -27,7 +27,7 @@ struct thumb_frame {
 };
 
 typedef struct ThumbContext {
-    int n, alpha, max_frames;
+    int n, max_frames;
     struct thumb_frame *frames;
     double *median;
     const AVPixFmtDescriptor *desc;
@@ -59,7 +59,9 @@ ThumbContext *create_thumb_context(AVStream *stream, AVFrame *frame);
 
 void free_thumb_context(ThumbContext *thumb_ctx);
 
-AVFrame *process_frames(ThumbContext *thumb_ctx);
+int find_best_frame_index(ThumbContext *thumb_ctx);
+
+AVFrame *select_frame(ThumbContext *thumb_ctx, int i);
 
 void populate_histogram(ThumbContext *thumb_ctx, int n, AVFrame *frame);
 

@@ -67,13 +67,10 @@ func TestAVContext(t *testing.T) {
 			} else {
 				require.NoError(t, os.WriteFile(goldenFile, metaBuf, 0666))
 			}
-
-			buf, err := av.Export()
-			require.NoError(t, err)
+			require.NoError(t, av.SelectBestFrame())
 			bands := 3
-			if meta.HasAlpha {
-				bands = 4
-			}
+			buf, err := av.Export(bands)
+			require.NoError(t, err)
 			img, err := vips.LoadImageFromMemory(buf, meta.Width, meta.Height, bands)
 			require.NoError(t, err)
 			buf, err = img.ExportJpeg(nil)
