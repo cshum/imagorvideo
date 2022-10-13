@@ -85,6 +85,9 @@ func LoadAVContext(ctx context.Context, reader io.Reader, size int64) (*AVContex
 }
 
 func (av *AVContext) ProcessFrames(maxFrames int) (err error) {
+	if av.formatContext == nil || av.codecContext == nil {
+		return ErrDecoderNotFound
+	}
 	if av.thumbContext == nil {
 		return createThumbContext(av, C.int(maxFrames))
 	}
