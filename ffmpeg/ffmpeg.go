@@ -88,26 +88,22 @@ func LoadAVContext(ctx context.Context, reader io.Reader, size int64) (*AVContex
 }
 
 func closeAVContext(av *AVContext) {
-	if av.closed {
-		return
+	if !av.closed {
+		if av.outputFrame != nil {
+			C.av_frame_free(&av.outputFrame)
+		}
+		if av.thumbContext != nil {
+			C.free_thumb_context(av.thumbContext)
+			av.selectedFrame = nil
+		}
+		if av.codecContext != nil {
+			C.avcodec_free_context(&av.codecContext)
+		}
+		if av.formatContext != nil {
+			C.free_format_context(av.formatContext)
+		}
+		pointer.Unref(av.opaque)
 	}
-	if av.outputFrame != nil {
-		C.av_frame_free(&av.outputFrame)
-	}
-	if av.outputFrame != nil {
-		C.av_frame_free(&av.outputFrame)
-	}
-	if av.thumbContext != nil {
-		C.free_thumb_context(av.thumbContext)
-		av.selectedFrame = nil
-	}
-	if av.codecContext != nil {
-		C.avcodec_free_context(&av.codecContext)
-	}
-	if av.formatContext != nil {
-		C.free_format_context(av.formatContext)
-	}
-	pointer.Unref(av.opaque)
 }
 
 func (av *AVContext) Export() (buf []byte, err error) {
