@@ -93,8 +93,8 @@ func (av *AVContext) ProcessFrames(maxFrames int) (err error) {
 
 func (av *AVContext) SelectFrame(n int) (err error) {
 	nn := C.int(n)
-	if av.thumbContext != nil && nn >= av.thumbContext.n {
-		nn = av.thumbContext.n - 1
+	if av.thumbContext != nil && nn > av.availableIndex {
+		nn = av.availableIndex
 	}
 	av.selectedIndex = nn
 	if err = av.ProcessFrames(-1); err != nil {
@@ -233,16 +233,23 @@ func incrementDuration(av *AVContext, frame *C.AVFrame, i C.int) {
 	}
 }
 
-func populateHistogram(av *AVContext, frames <-chan *C.AVFrame) <-chan struct{} {
+func populateFrames(av *AVContext, frames <-chan *C.AVFrame) <-chan struct{} {
 	done := make(chan struct{})
+	var isSelected = av.selectedIndex > -1
 	go func() {
 		var n C.int
-		for frame := range frames {
-			C.populate_histogram(av.thumbContext, n, frame)
-			n++
+		if !isSelected {
+			for frame := range frames {
+				C.populate_histogram(av.thumbContext, n, frame)
+				n++
+			}
+		} else {
+			for frame := range frames {
+				C.populate_frame(av.thumbContext, n, frame)
+				n++
+			}
 		}
 		av.thumbContext.n = n
-		done <- struct{}{}
 		close(done)
 	}()
 	return done
@@ -276,7 +283,7 @@ func createThumbContext(av *AVContext, maxFrames C.int) error {
 		n = av.selectedIndex + 1
 	}
 	frames := make(chan *C.AVFrame, n)
-	done := populateHistogram(av, frames)
+	done := populateFrames(av, frames)
 	frames <- frame
 	if pkt.buf != nil {
 		C.av_packet_unref(&pkt)

@@ -63,6 +63,8 @@ int find_best_frame_index(ThumbContext *thumb_ctx);
 
 AVFrame *select_frame(ThumbContext *thumb_ctx, int i);
 
+void populate_frame(ThumbContext *thumb_ctx, int n, AVFrame *frame);
+
 void populate_histogram(ThumbContext *thumb_ctx, int n, AVFrame *frame);
 
 extern int goPacketRead(void *opaque, uint8_t *buf, int buf_size);
