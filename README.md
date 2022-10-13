@@ -71,7 +71,12 @@ http://localhost:8000/unsafe/meta/https://test-videos.co.uk/vids/bigbuckbunny/mp
   "has_audio": false
 }
 ```
-Appending the `max_frames()` or `frame(n)` filter however, would trigger the frames processing. This results more processing time but also allows retrieving more frame related info, such as frames per second `fps` and selected frame index:
+Appending the `max_frames()` or `frame(n)` filter however, would trigger the frames processing. This results more processing time but also allows retrieving more frame related info, such as frames per second `fps` and selected frame index. Example:
+
+```
+http://localhost:8000/unsafe/meta/filters:max_frames()/https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/1080/Big_Buck_Bunny_1080_10s_30MB.mp4
+```
+
 
 ```json
 {
