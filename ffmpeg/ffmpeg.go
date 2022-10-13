@@ -97,6 +97,9 @@ func (av *AVContext) SelectFrame(n int) (err error) {
 		nn = av.thumbContext.n - 1
 	}
 	av.selectedIndex = nn
+	if err = av.ProcessFrames(-1); err != nil {
+		return
+	}
 	return nil
 }
 

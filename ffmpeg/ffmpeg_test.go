@@ -72,9 +72,6 @@ func TestAVContext(t *testing.T) {
 					if frame > -1 {
 						require.NoError(t, av.SelectFrame(frame))
 					}
-					if frame != 9999 {
-						require.NoError(t, av.ProcessFrames(-1))
-					}
 				}
 				meta := av.Metadata()
 				metaBuf, err := json.Marshal(meta)
