@@ -9,6 +9,7 @@ import (
 	"context"
 	"github.com/cshum/imagor/vips/pointer"
 	"io"
+	"math"
 	"time"
 	"unsafe"
 )
@@ -133,7 +134,7 @@ func (av *AVContext) Metadata() *Metadata {
 		Height:      av.height,
 		Title:       av.title,
 		Artist:      av.artist,
-		FPS:         int(fps),
+		FPS:         int(math.Round(fps)),
 		HasVideo:    av.hasVideo,
 		HasAudio:    av.hasAudio,
 	}
