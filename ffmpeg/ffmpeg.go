@@ -34,22 +34,21 @@ type Metadata struct {
 }
 
 type AVContext struct {
-	context          context.Context
-	opaque           unsafe.Pointer
-	reader           io.Reader
-	seeker           io.Seeker
-	formatContext    *C.AVFormatContext
-	stream           *C.AVStream
-	codecContext     *C.AVCodecContext
-	thumbContext     *C.ThumbContext
-	frameIndex       C.int
-	frame            *C.AVFrame
-	durationInFormat bool
-
+	context            context.Context
+	opaque             unsafe.Pointer
+	reader             io.Reader
+	seeker             io.Seeker
+	formatContext      *C.AVFormatContext
+	stream             *C.AVStream
+	codecContext       *C.AVCodecContext
+	thumbContext       *C.ThumbContext
+	selectedIndex      C.int
+	frame              *C.AVFrame
+	durationInFormat   bool
 	orientation        int
 	size               int64
 	duration           time.Duration
-	frameAt            int
+	indexAt            C.int
 	durationAt         time.Duration
 	width, height      int
 	title, artist      string
@@ -107,7 +106,7 @@ func (av *AVContext) Export(bands int) (buf []byte, err error) {
 	if bands < 3 || bands > 4 {
 		bands = 3
 	}
-	if av.frameIndex == 0 {
+	if av.selectedIndex == 0 {
 		findBestFrameIndex(av)
 	}
 	if err = convertFrameToRGB(av, bands); err != nil {
@@ -123,7 +122,7 @@ func (av *AVContext) Close() {
 func (av *AVContext) Metadata() *Metadata {
 	var fps float64
 	if av.durationAt > 0 {
-		fps = float64(av.frameAt) * float64(time.Second) / float64(av.durationAt)
+		fps = float64(av.indexAt) * float64(time.Second) / float64(av.durationAt)
 	}
 	return &Metadata{
 		Orientation: av.orientation,
@@ -197,8 +196,8 @@ func createDecoder(av *AVContext) error {
 	return nil
 }
 
-func incrementDuration(av *AVContext, frame *C.AVFrame, i int) {
-	av.frameAt = i
+func incrementDuration(av *AVContext, frame *C.AVFrame, i C.int) {
+	av.indexAt = i
 	if frame.pts != C.AV_NOPTS_VALUE {
 		ptsToNano := C.int64_t(1000000000 * av.stream.time_base.num / av.stream.time_base.den)
 		newDuration := time.Duration(frame.pts * ptsToNano)
@@ -262,7 +261,7 @@ func populateThumbContext(av *AVContext, frames chan *C.AVFrame, done <-chan str
 		if err < 0 {
 			break
 		}
-		incrementDuration(av, frame, int(i))
+		incrementDuration(av, frame, i)
 		frames <- frame
 		frame = nil
 	}
@@ -281,7 +280,7 @@ func populateThumbContext(av *AVContext, frames chan *C.AVFrame, done <-chan str
 }
 
 func findBestFrameIndex(av *AVContext) {
-	av.frameIndex = C.find_best_frame_index(av.thumbContext)
+	av.selectedIndex = C.find_best_frame_index(av.thumbContext)
 }
 
 func convertFrameToRGB(av *AVContext, bands int) error {
@@ -290,7 +289,7 @@ func convertFrameToRGB(av *AVContext, bands int) error {
 		alpha = 1
 	}
 	av.frame = C.convert_frame_to_rgb(
-		C.select_frame(av.thumbContext, av.frameIndex), C.int(alpha))
+		C.select_frame(av.thumbContext, av.selectedIndex), C.int(alpha))
 	if av.frame == nil {
 		return ErrNoMem
 	}
