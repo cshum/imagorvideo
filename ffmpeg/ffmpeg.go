@@ -84,25 +84,19 @@ func LoadAVContext(ctx context.Context, reader io.Reader, size int64) (*AVContex
 	return av, nil
 }
 
-func closeAVContext(av *AVContext) {
-	if !av.closed {
-		if av.frame != nil {
-			C.av_frame_free(&av.frame)
-		}
-		if av.thumbContext != nil {
-			C.free_thumb_context(av.thumbContext)
-		}
-		if av.codecContext != nil {
-			C.avcodec_free_context(&av.codecContext)
-		}
-		if av.formatContext != nil {
-			C.free_format_context(av.formatContext)
-		}
-		pointer.Unref(av.opaque)
-	}
-}
+//
+//func (av *AVContext) SelectFrame(n int) (err error) {
+//	if av.thumbContext == nil || av.thumbContext.max_frames {
+//		err = ErrInvalidData
+//		return
+//	}
+//}
 
 func (av *AVContext) Export(bands int) (buf []byte, err error) {
+	if av.thumbContext == nil {
+		err = ErrInvalidData
+		return
+	}
 	if bands < 3 || bands > 4 {
 		bands = 3
 	}
@@ -134,6 +128,24 @@ func (av *AVContext) Metadata() *Metadata {
 		FPS:         int(fps),
 		HasVideo:    av.hasVideo,
 		HasAudio:    av.hasAudio,
+	}
+}
+
+func closeAVContext(av *AVContext) {
+	if !av.closed {
+		if av.frame != nil {
+			C.av_frame_free(&av.frame)
+		}
+		if av.thumbContext != nil {
+			C.free_thumb_context(av.thumbContext)
+		}
+		if av.codecContext != nil {
+			C.avcodec_free_context(&av.codecContext)
+		}
+		if av.formatContext != nil {
+			C.free_format_context(av.formatContext)
+		}
+		pointer.Unref(av.opaque)
 	}
 }
 
