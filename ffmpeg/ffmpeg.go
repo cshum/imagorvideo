@@ -158,7 +158,7 @@ func createFormatContext(av *AVContext, callbackFlags C.int) error {
 		pointer.Unref(av.opaque)
 		return avError(intErr)
 	}
-	metaData(av)
+	metadata(av)
 	duration(av)
 	err := findStreams(av)
 	if err != nil {
@@ -168,7 +168,7 @@ func createFormatContext(av *AVContext, callbackFlags C.int) error {
 	return err
 }
 
-func metaData(av *AVContext) {
+func metadata(av *AVContext) {
 	var artist, title *C.char
 	C.get_metadata(av.formatContext, &artist, &title)
 	av.artist = C.GoString(artist)
