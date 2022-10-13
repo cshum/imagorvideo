@@ -146,6 +146,7 @@ func closeAVContext(av *AVContext) {
 			C.free_format_context(av.formatContext)
 		}
 		pointer.Unref(av.opaque)
+		av.closed = true
 	}
 }
 
