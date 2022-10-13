@@ -28,6 +28,7 @@ type Metadata struct {
 	Height      int    `json:"height,omitempty"`
 	Title       string `json:"title,omitempty"`
 	Artist      string `json:"artist,omitempty"`
+	FPS         int    `json:"fps,omitempty"`
 	HasVideo    bool   `json:"has_video"`
 	HasAudio    bool   `json:"has_audio"`
 	HasAlpha    bool   `json:"has_alpha"`
@@ -42,16 +43,20 @@ type AVContext struct {
 	stream           *C.AVStream
 	codecContext     *C.AVCodecContext
 	thumbContext     *C.ThumbContext
-	frame            *C.AVFrame
+	selectedFrame    *C.AVFrame
+	outputFrame      *C.AVFrame
 	durationInFormat bool
 
 	orientation        int
 	size               int64
 	duration           time.Duration
+	frameAt            int
+	durationAt         time.Duration
 	width, height      int
 	title, artist      string
 	hasVideo, hasAudio bool
-	hasFrame, hasAlpha bool
+	hasAlpha           bool
+	closed             bool
 }
 
 func LoadAVContext(ctx context.Context, reader io.Reader, size int64) (*AVContext, error) {
@@ -67,17 +72,41 @@ func LoadAVContext(ctx context.Context, reader io.Reader, size int64) (*AVContex
 	if av.seeker != nil {
 		flags |= seekPacketFlag
 	}
-	err := createFormatContext(av, flags)
-	if err != nil {
+	if err := createFormatContext(av, flags); err != nil {
 		return nil, err
 	}
 	if !av.hasVideo {
 		return av, nil
 	}
-	if err = createDecoder(av); err == ErrTooBig || err == ErrDecoderNotFound {
+	if err := createDecoder(av); err != nil {
+		return av, err
+	}
+	if err := createThumbContext(av); err != nil {
+		return av, err
+	}
+	if err := convertFrameToRGB(av); err != nil {
 		return av, err
 	}
 	return av, nil
+}
+
+func closeAVContext(av *AVContext) {
+	if !av.closed {
+		if av.outputFrame != nil {
+			C.av_frame_free(&av.outputFrame)
+		}
+		if av.thumbContext != nil {
+			C.free_thumb_context(av.thumbContext)
+			av.selectedFrame = nil
+		}
+		if av.codecContext != nil {
+			C.avcodec_free_context(&av.codecContext)
+		}
+		if av.formatContext != nil {
+			C.free_format_context(av.formatContext)
+		}
+		pointer.Unref(av.opaque)
+	}
 }
 
 func (av *AVContext) Export() (buf []byte, err error) {
@@ -85,13 +114,14 @@ func (av *AVContext) Export() (buf []byte, err error) {
 }
 
 func (av *AVContext) Close() {
-	if av.hasFrame {
-		C.av_frame_free(&av.frame)
-	}
-	freeFormatContext(av)
+	closeAVContext(av)
 }
 
 func (av *AVContext) Metadata() *Metadata {
+	var fps float64
+	if av.durationAt > 0 {
+		fps = float64(av.frameAt) * float64(time.Second) / float64(av.durationAt)
+	}
 	return &Metadata{
 		Orientation: av.orientation,
 		Duration:    int(av.duration / time.Millisecond),
@@ -99,15 +129,11 @@ func (av *AVContext) Metadata() *Metadata {
 		Height:      av.height,
 		Title:       av.title,
 		Artist:      av.artist,
+		FPS:         int(fps),
 		HasVideo:    av.hasVideo,
 		HasAudio:    av.hasAudio,
 		HasAlpha:    av.hasAlpha,
 	}
-}
-
-func freeFormatContext(av *AVContext) {
-	C.free_format_context(av.formatContext)
-	pointer.Unref(av.opaque)
 }
 
 func createFormatContext(av *AVContext, callbackFlags C.int) error {
@@ -125,7 +151,8 @@ func createFormatContext(av *AVContext, callbackFlags C.int) error {
 	duration(av)
 	err := findStreams(av)
 	if err != nil {
-		freeFormatContext(av)
+		C.free_format_context(av.formatContext)
+		pointer.Unref(av.opaque)
 	}
 	return err
 }
@@ -165,15 +192,16 @@ func createDecoder(av *AVContext) error {
 	if err < 0 {
 		return avError(err)
 	}
-	defer C.avcodec_free_context(&av.codecContext)
-	return createThumbContext(av)
+	return nil
 }
 
-func incrementDuration(av *AVContext, frame *C.AVFrame) {
-	if !av.durationInFormat && frame.pts != C.AV_NOPTS_VALUE {
+func incrementDuration(av *AVContext, frame *C.AVFrame, i int) {
+	av.frameAt = i
+	if frame.pts != C.AV_NOPTS_VALUE {
 		ptsToNano := C.int64_t(1000000000 * av.stream.time_base.num / av.stream.time_base.den)
 		newDuration := time.Duration(frame.pts * ptsToNano)
-		if newDuration > av.duration {
+		av.durationAt = newDuration
+		if !av.durationInFormat && newDuration > av.duration {
 			av.duration = newDuration
 		}
 	}
@@ -199,7 +227,7 @@ func createThumbContext(av *AVContext) error {
 	var frame *C.AVFrame
 	err := C.obtain_next_frame(av.formatContext, av.codecContext, av.stream.index, &pkt, &frame)
 	if err >= 0 {
-		incrementDuration(av, frame)
+		incrementDuration(av, frame, 0)
 		av.thumbContext = C.create_thumb_context(av.stream, frame)
 		if av.thumbContext == nil {
 			err = C.int(ErrNoMem)
@@ -214,7 +242,6 @@ func createThumbContext(av *AVContext) error {
 		}
 		return avError(err)
 	}
-	defer C.free_thumb_context(av.thumbContext)
 	frames := make(chan *C.AVFrame, av.thumbContext.max_frames)
 	done := populateHistogram(av, frames)
 	frames <- frame
@@ -233,7 +260,7 @@ func populateThumbContext(av *AVContext, frames chan *C.AVFrame, done <-chan str
 		if err < 0 {
 			break
 		}
-		incrementDuration(av, frame)
+		incrementDuration(av, frame, int(i))
 		frames <- frame
 		frame = nil
 	}
@@ -248,22 +275,24 @@ func populateThumbContext(av *AVContext, frames chan *C.AVFrame, done <-chan str
 	if err != 0 && err != C.int(ErrEOF) {
 		return avError(err)
 	}
-	return convertFrameToRGB(av)
-}
-
-func convertFrameToRGB(av *AVContext) error {
-	outputFrame := C.convert_frame_to_rgb(C.process_frames(av.thumbContext), av.thumbContext.alpha)
-	if outputFrame == nil {
+	av.selectedFrame = C.process_frames(av.thumbContext)
+	if av.selectedFrame == nil {
 		return ErrNoMem
 	}
-	av.frame = outputFrame
-	av.hasFrame = true
 	av.hasAlpha = av.thumbContext.alpha != 0
 	return nil
 }
 
+func convertFrameToRGB(av *AVContext) error {
+	av.outputFrame = C.convert_frame_to_rgb(av.selectedFrame, av.thumbContext.alpha)
+	if av.outputFrame == nil {
+		return ErrNoMem
+	}
+	return nil
+}
+
 func exportBuffer(av *AVContext) ([]byte, error) {
-	if !av.hasFrame {
+	if av.outputFrame == nil {
 		return nil, ErrInvalidData
 	}
 	size := av.height * av.width
@@ -272,6 +301,6 @@ func exportBuffer(av *AVContext) ([]byte, error) {
 	} else {
 		size *= 3
 	}
-	buf := C.GoBytes(unsafe.Pointer(av.frame.data[0]), C.int(size))
+	buf := C.GoBytes(unsafe.Pointer(av.outputFrame.data[0]), C.int(size))
 	return buf, nil
 }
