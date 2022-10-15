@@ -108,7 +108,7 @@ func (p *Processor) Process(ctx context.Context, in *imagor.Blob, params imagorp
 			return
 		}
 	}
-	av, err := ffmpeg.LoadAVContext(ctx, r, size)
+	av, err := ffmpeg.LoadAVContext(r, size)
 	if err != nil {
 		return
 	}

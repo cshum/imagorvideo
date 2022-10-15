@@ -39,10 +39,6 @@ int create_format_context(AVFormatContext *fmt_ctx, void* opaque, int flags) {
         seeker = goPacketSeek;
         seekable = 1;
     }
-    if (flags & INTERRUPT_FLAG) {
-        fmt_ctx->interrupt_callback.callback = goInterrupt;
-        fmt_ctx->interrupt_callback.opaque = opaque;
-    }
     if (!(avio_ctx = avio_alloc_context(avio_buffer, BUFFER_SIZE, write_flag, opaque, reader, NULL, seeker))) {
         av_free(avio_buffer);
         avformat_free_context(fmt_ctx);

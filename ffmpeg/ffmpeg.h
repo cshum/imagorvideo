@@ -16,7 +16,6 @@
 #define BUFFER_SIZE 1 << 12
 #define READ_PACKET_FLAG 1
 #define SEEK_PACKET_FLAG 2
-#define INTERRUPT_FLAG 3
 #define HAS_VIDEO_STREAM 1
 #define HAS_AUDIO_STREAM 2
 #define ERR_TOO_BIG FFERRTAG('H','M','M','M')
@@ -70,5 +69,3 @@ void populate_histogram(ThumbContext *thumb_ctx, int n, AVFrame *frame);
 extern int goPacketRead(void *opaque, uint8_t *buf, int buf_size);
 
 extern int64_t goPacketSeek(void *opaque, int64_t seek, int whence);
-
-extern int goInterrupt(void *opaque);

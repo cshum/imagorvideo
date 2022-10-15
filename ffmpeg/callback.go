@@ -47,19 +47,6 @@ func goPacketSeek(opaque unsafe.Pointer, offset C.int64_t, whence C.int) C.int64
 	return C.int64_t(n)
 }
 
-//export goInterrupt
-func goInterrupt(opaque unsafe.Pointer) C.int {
-	if ctx, ok := pointer.Restore(opaque).(*AVContext); ok {
-		select {
-		case <-ctx.context.Done():
-			return 1
-		default:
-			return 0
-		}
-	}
-	return 0
-}
-
 //export goAVLoggingHandler
 func goAVLoggingHandler(level C.int, cstr *C.char) {
 	log(AVLogLevel(level), C.GoString(cstr))
