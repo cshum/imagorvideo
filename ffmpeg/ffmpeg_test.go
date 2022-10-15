@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
+	"io"
 	"os"
 	"reflect"
 	"strings"
@@ -131,4 +132,25 @@ func TestNoVideo(t *testing.T) {
 			require.Equal(t, ErrDecoderNotFound, err)
 		})
 	}
+}
+
+func TestCorrupted(t *testing.T) {
+	filename := "macabre.mp4"
+	path := baseDir + filename
+	file, err := os.Open(path)
+	require.NoError(t, err)
+	reader := &readCloser{
+		Reader: io.LimitReader(file, 1024),
+		Closer: file,
+	}
+	stats, err := os.Stat(path)
+	require.NoError(t, err)
+	av, err := LoadAVContext(reader, stats.Size())
+	require.Equal(t, ErrInvalidData, err)
+	require.Empty(t, av)
+}
+
+type readCloser struct {
+	io.Reader
+	io.Closer
 }
