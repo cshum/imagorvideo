@@ -109,7 +109,7 @@ func (av *AVContext) Export(bands int) (buf []byte, err error) {
 		return
 	}
 	if bands < 3 || bands > 4 {
-		bands = 3
+		bands = 4
 	}
 	if err = convertFrameToRGB(av, bands); err != nil {
 		return

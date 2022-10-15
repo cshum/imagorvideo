@@ -54,10 +54,10 @@ func TestAVContext(t *testing.T) {
 	require.NoError(t, os.MkdirAll(baseDir+"golden/export", 0755))
 	t.Parallel()
 	for _, filename := range files {
-		for _, frame := range []int{-1, 5, 10, 9999, 99999} {
+		for _, n := range []int{-1, 5, 10, 9999, 99999} {
 			name := filename
-			if frame > -1 {
-				name = fmt.Sprintf("%s-%d", filename, frame)
+			if n > -1 {
+				name = fmt.Sprintf("%s-%d", filename, n)
 			}
 			t.Run(name, func(t *testing.T) {
 				path := baseDir + filename
@@ -68,14 +68,14 @@ func TestAVContext(t *testing.T) {
 				av, err := LoadAVContext(reader, stats.Size())
 				require.NoError(t, err)
 				defer av.Close()
-				if frame == 10 {
-					require.NoError(t, av.ProcessFrames(frame))
+				if n == 10 {
+					require.NoError(t, av.ProcessFrames(n))
 				} else {
-					if frame == 9999 {
+					if n == 9999 {
 						require.NoError(t, av.ProcessFrames(-1))
 					}
-					if frame > -1 {
-						require.NoError(t, av.SelectFrame(frame))
+					if n > -1 {
+						require.NoError(t, av.SelectFrame(n))
 					}
 				}
 				meta := av.Metadata()
@@ -88,6 +88,9 @@ func TestAVContext(t *testing.T) {
 					require.NoError(t, os.WriteFile(goldenFile, metaBuf, 0666))
 				}
 				bands := 4
+				if n == 99999 {
+					bands = 999
+				}
 				buf, err := av.Export(bands)
 				require.NoError(t, err)
 				img, err := vips.LoadImageFromMemory(buf, meta.Width, meta.Height, bands)
