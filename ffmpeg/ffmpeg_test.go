@@ -93,6 +93,9 @@ func TestAVContext(t *testing.T) {
 				}
 				buf, err := av.Export(bands)
 				require.NoError(t, err)
+				if bands > 4 {
+					bands = 4
+				}
 				img, err := vips.LoadImageFromMemory(buf, meta.Width, meta.Height, bands)
 				require.NoError(t, err)
 				buf, err = img.ExportJpeg(nil)
