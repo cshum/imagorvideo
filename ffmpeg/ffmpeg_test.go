@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/cshum/imagor/vips"
+	"github.com/cshum/imagor/vips/pointer"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
@@ -154,6 +155,21 @@ func TestCorrupted(t *testing.T) {
 	av, err := LoadAVContext(reader, stats.Size())
 	require.Equal(t, ErrInvalidData, err)
 	require.Empty(t, av)
+}
+
+func TestCorruptedOpaque(t *testing.T) {
+	filename := "macabre.mp4"
+	path := baseDir + filename
+	reader, err := os.Open(path)
+	require.NoError(t, err)
+	stats, err := os.Stat(path)
+	require.NoError(t, err)
+	av, err := LoadAVContext(reader, stats.Size())
+	require.NoError(t, err)
+	defer av.Close()
+	pointer.Unref(av.opaque)
+	err = av.ProcessFrames(-1)
+	assert.Equal(t, ErrUnknown, err)
 }
 
 type readCloser struct {
