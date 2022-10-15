@@ -17,7 +17,6 @@ import (
 const (
 	readPacketFlag = 1
 	seekPacketFlag = 2
-	interruptFlag  = 3
 	hasVideo       = 1
 	hasAudio       = 2
 )
@@ -58,9 +57,8 @@ type AVContext struct {
 	closed             bool
 }
 
-func LoadAVContext(ctx context.Context, reader io.Reader, size int64) (*AVContext, error) {
+func LoadAVContext(reader io.Reader, size int64) (*AVContext, error) {
 	av := &AVContext{
-		context:       ctx,
 		reader:        reader,
 		size:          size,
 		selectedIndex: -1,
@@ -68,7 +66,7 @@ func LoadAVContext(ctx context.Context, reader io.Reader, size int64) (*AVContex
 	if seeker, ok := reader.(io.Seeker); ok {
 		av.seeker = seeker
 	}
-	flags := C.int(readPacketFlag | interruptFlag)
+	flags := C.int(readPacketFlag)
 	if av.seeker != nil {
 		flags |= seekPacketFlag
 	}

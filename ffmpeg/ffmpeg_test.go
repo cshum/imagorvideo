@@ -1,7 +1,6 @@
 package ffmpeg
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/cshum/imagor/vips"
@@ -59,13 +58,12 @@ func TestAVContext(t *testing.T) {
 				name = fmt.Sprintf("%s-%d", filename, frame)
 			}
 			t.Run(name, func(t *testing.T) {
-				ctx := context.Background()
 				path := baseDir + filename
 				reader, err := os.Open(path)
 				require.NoError(t, err)
 				stats, err := os.Stat(path)
 				require.NoError(t, err)
-				av, err := LoadAVContext(ctx, reader, stats.Size())
+				av, err := LoadAVContext(reader, stats.Size())
 				require.NoError(t, err)
 				defer av.Close()
 				if frame == 10 {
@@ -110,13 +108,12 @@ func TestNoVideo(t *testing.T) {
 	require.NoError(t, os.MkdirAll(baseDir+"golden/export", 0755))
 	for _, filename := range noVideo {
 		t.Run(filename, func(t *testing.T) {
-			ctx := context.Background()
 			path := baseDir + filename
 			reader, err := os.Open(path)
 			require.NoError(t, err)
 			stats, err := os.Stat(path)
 			require.NoError(t, err)
-			av, err := LoadAVContext(ctx, reader, stats.Size())
+			av, err := LoadAVContext(reader, stats.Size())
 			require.NoError(t, err)
 			defer av.Close()
 			require.Equal(t, ErrDecoderNotFound, av.ProcessFrames(-1))
