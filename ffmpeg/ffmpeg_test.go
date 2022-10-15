@@ -108,29 +108,35 @@ func TestNoVideo(t *testing.T) {
 	require.NoError(t, os.MkdirAll(baseDir+"golden/meta", 0755))
 	require.NoError(t, os.MkdirAll(baseDir+"golden/export", 0755))
 	for _, filename := range noVideo {
-		t.Run(filename, func(t *testing.T) {
-			path := baseDir + filename
-			reader, err := os.Open(path)
-			require.NoError(t, err)
-			stats, err := os.Stat(path)
-			require.NoError(t, err)
-			av, err := LoadAVContext(reader, stats.Size())
-			require.NoError(t, err)
-			defer av.Close()
-			require.Equal(t, ErrDecoderNotFound, av.ProcessFrames(-1))
-			meta := av.Metadata()
-			metaBuf, err := json.Marshal(meta)
-			require.NoError(t, err)
-			goldenFile := baseDir + "golden/meta/" + filename + ".meta.json"
-			if curr, err := os.ReadFile(goldenFile); err == nil {
-				assert.Equal(t, string(curr), string(metaBuf))
-			} else {
-				require.NoError(t, os.WriteFile(goldenFile, metaBuf, 0666))
-			}
-			buf, err := av.Export(3)
-			require.Empty(t, buf)
-			require.Equal(t, ErrDecoderNotFound, err)
-		})
+		for i := 0; i < 2; i++ {
+			t.Run(fmt.Sprintf("%s-%d", filename, i), func(t *testing.T) {
+				path := baseDir + filename
+				reader, err := os.Open(path)
+				require.NoError(t, err)
+				stats, err := os.Stat(path)
+				require.NoError(t, err)
+				av, err := LoadAVContext(reader, stats.Size())
+				require.NoError(t, err)
+				defer av.Close()
+				require.Equal(t, ErrDecoderNotFound, av.ProcessFrames(-1))
+				meta := av.Metadata()
+				metaBuf, err := json.Marshal(meta)
+				require.NoError(t, err)
+				goldenFile := baseDir + "golden/meta/" + filename + ".meta.json"
+				if curr, err := os.ReadFile(goldenFile); err == nil {
+					assert.Equal(t, string(curr), string(metaBuf))
+				} else {
+					require.NoError(t, os.WriteFile(goldenFile, metaBuf, 0666))
+				}
+				if i == 0 {
+					buf, err := av.Export(3)
+					require.Empty(t, buf)
+					assert.Equal(t, ErrDecoderNotFound, err)
+				} else {
+					assert.Equal(t, ErrDecoderNotFound, av.SelectFrame(1))
+				}
+			})
+		}
 	}
 }
 
