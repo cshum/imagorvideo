@@ -6,7 +6,6 @@ package ffmpeg
 // #include "ffmpeg.h"
 import "C"
 import (
-	"context"
 	"github.com/cshum/imagor/vips/pointer"
 	"io"
 	"math"
@@ -35,7 +34,6 @@ type Metadata struct {
 }
 
 type AVContext struct {
-	context            context.Context
 	opaque             unsafe.Pointer
 	reader             io.Reader
 	seeker             io.Seeker

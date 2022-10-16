@@ -257,30 +257,11 @@ obtain_next_frame(AVFormatContext *fmt_ctx, AVCodecContext *dec_ctx, int stream_
     return err;
 }
 
-int64_t find_duration(AVFormatContext *fmt_ctx) {
-    AVPacket pkt = create_packet();
-    int err = 0;
-    int64_t duration = 0;
-    while (err >= 0) {
-        err = av_read_frame(fmt_ctx, &pkt);
-        if (pkt.pts != AV_NOPTS_VALUE) {
-            AVRational time_base = fmt_ctx->streams[pkt.stream_index]->time_base;
-            duration = FFMAX(duration, pkt.pts * 1000000000 * time_base.num / time_base.den);
-        }
-        av_packet_unref(&pkt);
-    }
-    if (err == AVERROR_EOF) {
-        return duration;
-    }
-    return err;
-}
-
 ThumbContext *create_thumb_context(AVStream *stream, AVFrame *frame) {
     ThumbContext *thumb_ctx = av_mallocz(sizeof *thumb_ctx);
     if (!thumb_ctx) {
         return thumb_ctx;
     }
-//    thumb_ctx->n = 0;
     thumb_ctx->desc = av_pix_fmt_desc_get(frame->format);
     int nb_frames = 100;
     if (stream->disposition & AV_DISPOSITION_ATTACHED_PIC) {
