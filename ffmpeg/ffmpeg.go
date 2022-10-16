@@ -74,10 +74,7 @@ func LoadAVContext(reader io.Reader, size int64) (*AVContext, error) {
 	if !av.hasVideo {
 		return av, nil
 	}
-	if err := createDecoder(av); err != nil {
-		return av, err
-	}
-	return av, nil
+	return av, createDecoder(av)
 }
 
 func (av *AVContext) ProcessFrames(maxFrames int) (err error) {
