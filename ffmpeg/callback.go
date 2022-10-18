@@ -23,8 +23,10 @@ func goPacketRead(opaque unsafe.Pointer, buffer *C.uint8_t, bufSize C.int) C.int
 	}
 	buf := *(*[]byte)(unsafe.Pointer(sh))
 	n, err := ctx.reader.Read(buf)
-	if err == io.EOF && n == 0 {
-		return C.int(ErrEOF)
+	if err == io.EOF {
+		if n == 0 {
+			return C.int(ErrEOF)
+		}
 	} else if err != nil {
 		return C.int(ErrUnknown)
 	}
