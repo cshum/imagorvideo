@@ -243,9 +243,7 @@ func incrementDuration(av *AVContext, frame *C.AVFrame, i C.int) {
 		ptsToNano := C.int64_t(1000000000 * av.stream.time_base.num / av.stream.time_base.den)
 		newDuration := time.Duration(frame.pts * ptsToNano)
 		av.availableDuration = newDuration
-		if av.selectedDuration > 0 && i > 0 && newDuration <= av.selectedDuration {
-			av.selectedIndex = i
-		}
+
 		if !av.durationInFormat && newDuration > av.duration {
 			av.duration = newDuration
 		}
@@ -325,6 +323,13 @@ func populateThumbContext(av *AVContext, frames chan *C.AVFrame, n C.int, done <
 		incrementDuration(av, frame, i)
 		frames <- frame
 		frame = nil
+		if av.selectedDuration > 0 {
+			if av.availableDuration <= av.selectedDuration {
+				av.selectedIndex = i
+			} else {
+				break
+			}
+		}
 	}
 	if av.selectedIndex > av.availableIndex {
 		av.selectedIndex = av.availableIndex
