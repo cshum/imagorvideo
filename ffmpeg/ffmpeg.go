@@ -41,6 +41,7 @@ type AVContext struct {
 	codecContext       *C.AVCodecContext
 	thumbContext       *C.ThumbContext
 	selectedIndex      C.int
+	selectedDuration   time.Duration
 	frame              *C.AVFrame
 	durationInFormat   bool
 	orientation        int
@@ -109,15 +110,7 @@ func (av *AVContext) SelectDuration(ts time.Duration) (err error) {
 			return
 		}
 	}
-	return av.SelectFrame(1)
-}
-
-func (av *AVContext) SeekPosition(f float64) (err error) {
-	return av.SeekDuration(av.positionToDuration(f))
-}
-
-func (av *AVContext) SeekDuration(ts time.Duration) (err error) {
-	return seekDuration(av, ts)
+	return av.ProcessFrames(-1)
 }
 
 func (av *AVContext) Export(bands int) (buf []byte, err error) {
@@ -234,6 +227,7 @@ func createDecoder(av *AVContext) error {
 }
 
 func seekDuration(av *AVContext, ts time.Duration) error {
+	av.selectedDuration = ts
 	tts := C.int64_t(ts.Milliseconds()) * C.AV_TIME_BASE / 1000
 	err := C.av_seek_frame(av.formatContext, C.int(-1), tts, C.AVSEEK_FLAG_BACKWARD)
 	C.avcodec_flush_buffers(av.codecContext)
@@ -249,6 +243,9 @@ func incrementDuration(av *AVContext, frame *C.AVFrame, i C.int) {
 		ptsToNano := C.int64_t(1000000000 * av.stream.time_base.num / av.stream.time_base.den)
 		newDuration := time.Duration(frame.pts * ptsToNano)
 		av.availableDuration = newDuration
+		if av.selectedDuration > 0 && i > 0 && newDuration <= av.selectedDuration {
+			av.selectedIndex = i
+		}
 		if !av.durationInFormat && newDuration > av.duration {
 			av.duration = newDuration
 		}
@@ -303,6 +300,9 @@ func createThumbContext(av *AVContext, maxFrames C.int) error {
 	}
 	if av.selectedIndex > -1 && n > av.selectedIndex+1 {
 		n = av.selectedIndex + 1
+	}
+	if av.selectedDuration > 0 && av.selectedIndex < 0 {
+		av.selectedIndex = 0
 	}
 	frames := make(chan *C.AVFrame, n)
 	done := populateFrames(av, frames)

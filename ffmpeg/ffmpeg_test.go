@@ -13,6 +13,7 @@ import (
 	"reflect"
 	"strings"
 	"testing"
+	"time"
 )
 
 var files = []string{
@@ -71,7 +72,7 @@ func TestAVContext(t *testing.T) {
 				if n == 10 {
 					require.NoError(t, av.ProcessFrames(n))
 				} else if n == 99999 {
-					require.NoError(t, av.SeekPosition(0.6))
+					require.NoError(t, av.SelectDuration(time.Millisecond*500))
 				} else if n == 9999 {
 					require.NoError(t, av.SelectPosition(0.7))
 				} else if n > -1 {
