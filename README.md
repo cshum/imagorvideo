@@ -7,7 +7,7 @@
 
 imagorvideo is a new initiative that brings video thumbnail capability through ffmpeg, built on the foundations of [imagor](https://github.com/cshum/imagor) - a fast, Docker-ready image processing server written in Go with libvips.
 
-imagorvideo uses ffmpeg C bindings that extracts image thumbnail from video by attempting to select the best frame, then forwards to libvips to perform all the image cropping, resizing and filters supported by imagor.
+imagorvideo uses ffmpeg C bindings that extracts image thumbnail from video, by attempting to select the best frame. It then forwards to libvips to perform all the image cropping, resizing and filters supported by imagor.
 
 imagorvideo uses read stream for mkv and webm video types. For other video types that requires seeking from a non seek-able source such as HTTP or S3, it simulates seek using memory or temp file as buffer.
 
@@ -31,9 +31,9 @@ http://localhost:8000/unsafe/300x0/7x7/filters:label(imagorvideo,-10,-7,20,yello
 
 ![imagorvideo](https://raw.githubusercontent.com/cshum/imagorvideo/master/testdata/demo.jpg)
 
-imagorvideo works by streaming out a limited number of frames data from start of the video, looping through and populating the histogram data of each frame. It then choose the best frame for imaging, based on root-mean-square error (RMSE). This allow skipping the black frames that usually occur at the beginning of videos. 
+imagorvideo works by streaming out a limited number of frame data, looping through and calculating the histogram of each frame. It then choose the best frame for imaging, based on root-mean-square error (RMSE). This allow skipping the black frames that usually occur at the beginning of videos. 
 
-imagorvideo then converts the selected frame to RGB image data, forwards to the imagor libvips module, which has always been best at image processing with tons of features. Check out [imagor documentations](https://github.com/cshum/imagor#image-endpoint) for all the image options supported.
+imagorvideo then converts the selected frame to RGB image data, forwards to the imagor libvips processor, which has always been best at image processing with tons of features. Check out [imagor documentations](https://github.com/cshum/imagor#image-endpoint) for all the image options supported.
 
 ### Filters
 
