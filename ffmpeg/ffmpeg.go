@@ -88,7 +88,7 @@ func (av *AVContext) ProcessFrames(maxFrames int) (err error) {
 }
 
 func (av *AVContext) SelectFrame(n int) (err error) {
-	nn := C.int(n)
+	nn := C.int(n - 1)
 	if av.thumbContext != nil && nn > av.availableIndex {
 		nn = av.availableIndex
 	}
@@ -123,7 +123,7 @@ func (av *AVContext) Metadata() *Metadata {
 	}
 	var selectedFrame int
 	if av.availableIndex > 0 && av.selectedIndex > -1 {
-		selectedFrame = int(av.selectedIndex)
+		selectedFrame = int(av.selectedIndex) + 1
 	}
 	return &Metadata{
 		Orientation:   av.orientation,
