@@ -93,10 +93,11 @@ func (av *AVContext) SelectFrame(n int) (err error) {
 		nn = av.availableIndex
 	}
 	av.selectedIndex = nn
-	if err = av.ProcessFrames(-1); err != nil {
-		return
-	}
-	return nil
+	return av.ProcessFrames(-1)
+}
+
+func (av *AVContext) Seek(ts time.Duration) (err error) {
+	return seekFrame(av, ts)
 }
 
 func (av *AVContext) Export(bands int) (buf []byte, err error) {
@@ -211,6 +212,16 @@ func findStreams(av *AVContext) error {
 
 func createDecoder(av *AVContext) error {
 	err := C.create_codec_context(av.stream, &av.codecContext)
+	if err < 0 {
+		return avError(err)
+	}
+	return nil
+}
+
+func seekFrame(av *AVContext, ts time.Duration) error {
+	tts := C.int64_t(ts.Milliseconds()) * C.AV_TIME_BASE / 1000
+	err := C.av_seek_frame(av.formatContext, C.int(-1), tts, C.AVSEEK_FLAG_BACKWARD)
+	C.avcodec_flush_buffers(av.codecContext)
 	if err < 0 {
 		return avError(err)
 	}
