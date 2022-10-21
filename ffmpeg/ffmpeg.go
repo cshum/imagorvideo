@@ -21,16 +21,15 @@ const (
 )
 
 type Metadata struct {
-	Orientation   int     `json:"orientation"`
-	Duration      int     `json:"duration,omitempty"`
-	Width         int     `json:"width,omitempty"`
-	Height        int     `json:"height,omitempty"`
-	Title         string  `json:"title,omitempty"`
-	Artist        string  `json:"artist,omitempty"`
-	FPS           float64 `json:"fps,omitempty"`
-	SelectedFrame int     `json:"selected_frame,omitempty"`
-	HasVideo      bool    `json:"has_video"`
-	HasAudio      bool    `json:"has_audio"`
+	Orientation int     `json:"orientation"`
+	Duration    int     `json:"duration,omitempty"`
+	Width       int     `json:"width,omitempty"`
+	Height      int     `json:"height,omitempty"`
+	Title       string  `json:"title,omitempty"`
+	Artist      string  `json:"artist,omitempty"`
+	FPS         float64 `json:"fps,omitempty"`
+	HasVideo    bool    `json:"has_video"`
+	HasAudio    bool    `json:"has_audio"`
 }
 
 type AVContext struct {
@@ -93,10 +92,32 @@ func (av *AVContext) SelectFrame(n int) (err error) {
 		nn = av.availableIndex
 	}
 	av.selectedIndex = nn
-	if err = av.ProcessFrames(-1); err != nil {
-		return
+	return av.ProcessFrames(-1)
+}
+
+func (av *AVContext) positionToDuration(f float64) time.Duration {
+	return time.Duration(float64(av.duration) * math.Max(math.Min(f, 1), 0))
+}
+
+func (av *AVContext) SelectPosition(f float64) (err error) {
+	return av.SelectDuration(av.positionToDuration(f))
+}
+
+func (av *AVContext) SelectDuration(ts time.Duration) (err error) {
+	if ts > 0 {
+		if err = seekDuration(av, ts); err != nil {
+			return
+		}
 	}
-	return nil
+	return av.SelectFrame(1)
+}
+
+func (av *AVContext) SeekPosition(f float64) (err error) {
+	return av.SeekDuration(av.positionToDuration(f))
+}
+
+func (av *AVContext) SeekDuration(ts time.Duration) (err error) {
+	return seekDuration(av, ts)
 }
 
 func (av *AVContext) Export(bands int) (buf []byte, err error) {
@@ -121,21 +142,16 @@ func (av *AVContext) Metadata() *Metadata {
 	if av.availableDuration > 0 {
 		fps = float64(av.availableIndex) * float64(time.Second) / float64(av.availableDuration)
 	}
-	var selectedFrame int
-	if av.availableIndex > 0 && av.selectedIndex > -1 {
-		selectedFrame = int(av.selectedIndex) + 1
-	}
 	return &Metadata{
-		Orientation:   av.orientation,
-		Duration:      int(av.duration / time.Millisecond),
-		Width:         av.width,
-		Height:        av.height,
-		Title:         av.title,
-		Artist:        av.artist,
-		FPS:           math.Round(fps*10) / 10,
-		SelectedFrame: selectedFrame,
-		HasVideo:      av.hasVideo,
-		HasAudio:      av.hasAudio,
+		Orientation: av.orientation,
+		Duration:    int(av.duration / time.Millisecond),
+		Width:       av.width,
+		Height:      av.height,
+		Title:       av.title,
+		Artist:      av.artist,
+		FPS:         math.Round(fps*10) / 10,
+		HasVideo:    av.hasVideo,
+		HasAudio:    av.hasAudio,
 	}
 }
 
@@ -211,6 +227,16 @@ func findStreams(av *AVContext) error {
 
 func createDecoder(av *AVContext) error {
 	err := C.create_codec_context(av.stream, &av.codecContext)
+	if err < 0 {
+		return avError(err)
+	}
+	return nil
+}
+
+func seekDuration(av *AVContext, ts time.Duration) error {
+	tts := C.int64_t(ts.Milliseconds()) * C.AV_TIME_BASE / 1000
+	err := C.av_seek_frame(av.formatContext, C.int(-1), tts, C.AVSEEK_FLAG_BACKWARD)
+	C.avcodec_flush_buffers(av.codecContext)
 	if err < 0 {
 		return avError(err)
 	}

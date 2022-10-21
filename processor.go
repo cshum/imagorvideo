@@ -10,6 +10,7 @@ import (
 	"io"
 	"strconv"
 	"strings"
+	"time"
 )
 
 type Processor struct {
@@ -124,10 +125,31 @@ func (p *Processor) Process(ctx context.Context, in *imagor.Blob, params imagorp
 					bands = 4
 				}
 			}
+		case "seek":
+			if ts, e := time.ParseDuration(filter.Args); e == nil {
+				if err = av.SeekDuration(ts); err != nil {
+					return
+				}
+			} else if f, e := strconv.ParseFloat(filter.Args, 64); e == nil {
+				if err = av.SeekPosition(f); err != nil {
+					return
+				}
+			}
 		case "frame":
-			n, _ := strconv.Atoi(filter.Args)
-			if err = av.SelectFrame(n); err != nil {
-				return
+			if ts, e := time.ParseDuration(filter.Args); e == nil {
+				if err = av.SelectDuration(ts); err != nil {
+					return
+				}
+			} else if f, e := strconv.ParseFloat(filter.Args, 64); e == nil {
+				if strings.Contains(filter.Args, ".") {
+					if err = av.SelectPosition(f); err != nil {
+						return
+					}
+				} else if n := int(f); n >= 1 {
+					if err = av.SelectFrame(n); err != nil {
+						return
+					}
+				}
 			}
 		case "max_frames":
 			n, _ := strconv.Atoi(filter.Args)
