@@ -132,10 +132,24 @@ func (p *Processor) Process(ctx context.Context, in *imagor.Blob, params imagorp
 				}
 			}
 		case "frame":
-			f, _ := strconv.ParseFloat(filter.Args, 64)
-			if n := int(f); n >= 1 {
-				if err = av.SelectFrame(n); err != nil {
+			if ts, e := time.ParseDuration(filter.Args); e == nil {
+				if err = av.SelectDuration(ts); err != nil {
 					return
+				}
+			} else {
+				f, _ := strconv.ParseFloat(strings.TrimSuffix(filter.Args, "p"), 64)
+				hasP := strings.HasSuffix(filter.Args, "p")
+				if hasP {
+					f /= 100
+				}
+				if (0 <= f && f < 1) || hasP {
+					if err = av.SelectPosition(f); err != nil {
+						return
+					}
+				} else if n := int(f); n >= 1 {
+					if err = av.SelectFrame(n); err != nil {
+						return
+					}
 				}
 			}
 		case "max_frames":

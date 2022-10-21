@@ -95,8 +95,22 @@ func (av *AVContext) SelectFrame(n int) (err error) {
 	return av.ProcessFrames(-1)
 }
 
+func (av *AVContext) SelectPosition(f float64) (err error) {
+	ts := time.Duration(float64(av.duration) * math.Max(math.Min(f, 1), 0))
+	return av.SelectDuration(ts)
+}
+
+func (av *AVContext) SelectDuration(ts time.Duration) (err error) {
+	if ts > 0 {
+		if err = seekDuration(av, ts); err != nil {
+			return
+		}
+	}
+	return av.SelectFrame(1)
+}
+
 func (av *AVContext) Seek(ts time.Duration) (err error) {
-	return seekFrame(av, ts)
+	return seekDuration(av, ts)
 }
 
 func (av *AVContext) Export(bands int) (buf []byte, err error) {
@@ -212,7 +226,16 @@ func createDecoder(av *AVContext) error {
 	return nil
 }
 
-func seekFrame(av *AVContext, ts time.Duration) error {
+func seekFrame(av *AVContext, n C.int64_t) error {
+	err := C.av_seek_frame(av.formatContext, C.int(-1), n, C.AVSEEK_FLAG_FRAME|C.AVSEEK_FLAG_BACKWARD)
+	C.avcodec_flush_buffers(av.codecContext)
+	if err < 0 {
+		return avError(err)
+	}
+	return nil
+}
+
+func seekDuration(av *AVContext, ts time.Duration) error {
 	tts := C.int64_t(ts.Milliseconds()) * C.AV_TIME_BASE / 1000
 	err := C.av_seek_frame(av.formatContext, C.int(-1), tts, C.AVSEEK_FLAG_BACKWARD)
 	C.avcodec_flush_buffers(av.codecContext)
