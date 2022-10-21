@@ -95,9 +95,12 @@ func (av *AVContext) SelectFrame(n int) (err error) {
 	return av.ProcessFrames(-1)
 }
 
+func (av *AVContext) positionToDuration(f float64) time.Duration {
+	return time.Duration(float64(av.duration) * math.Max(math.Min(f, 1), 0))
+}
+
 func (av *AVContext) SelectPosition(f float64) (err error) {
-	ts := time.Duration(float64(av.duration) * math.Max(math.Min(f, 1), 0))
-	return av.SelectDuration(ts)
+	return av.SelectDuration(av.positionToDuration(f))
 }
 
 func (av *AVContext) SelectDuration(ts time.Duration) (err error) {
@@ -109,7 +112,11 @@ func (av *AVContext) SelectDuration(ts time.Duration) (err error) {
 	return av.SelectFrame(1)
 }
 
-func (av *AVContext) Seek(ts time.Duration) (err error) {
+func (av *AVContext) SeekPosition(f float64) (err error) {
+	return seekDuration(av, av.positionToDuration(f))
+}
+
+func (av *AVContext) SeekDuration(ts time.Duration) (err error) {
 	return seekDuration(av, ts)
 }
 

@@ -127,7 +127,11 @@ func (p *Processor) Process(ctx context.Context, in *imagor.Blob, params imagorp
 			}
 		case "seek":
 			if ts, e := time.ParseDuration(filter.Args); e == nil {
-				if err = av.Seek(ts); err != nil {
+				if err = av.SeekDuration(ts); err != nil {
+					return
+				}
+			} else if f, e := strconv.ParseFloat(filter.Args, 64); e == nil {
+				if err = av.SeekPosition(f); err != nil {
 					return
 				}
 			}
@@ -136,13 +140,8 @@ func (p *Processor) Process(ctx context.Context, in *imagor.Blob, params imagorp
 				if err = av.SelectDuration(ts); err != nil {
 					return
 				}
-			} else {
-				f, _ := strconv.ParseFloat(strings.TrimSuffix(filter.Args, "p"), 64)
-				hasP := strings.HasSuffix(filter.Args, "p")
-				if hasP {
-					f /= 100
-				}
-				if (0 <= f && f < 1) || hasP {
+			} else if f, e := strconv.ParseFloat(filter.Args, 64); e == nil {
+				if strings.Contains(filter.Args, ".") {
 					if err = av.SelectPosition(f); err != nil {
 						return
 					}
