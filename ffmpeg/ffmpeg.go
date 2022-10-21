@@ -113,7 +113,7 @@ func (av *AVContext) SelectDuration(ts time.Duration) (err error) {
 }
 
 func (av *AVContext) SeekPosition(f float64) (err error) {
-	return seekDuration(av, av.positionToDuration(f))
+	return av.SeekDuration(av.positionToDuration(f))
 }
 
 func (av *AVContext) SeekDuration(ts time.Duration) (err error) {

@@ -70,13 +70,12 @@ func TestAVContext(t *testing.T) {
 				defer av.Close()
 				if n == 10 {
 					require.NoError(t, av.ProcessFrames(n))
-				} else {
-					if n == 9999 {
-						require.NoError(t, av.ProcessFrames(-1))
-					}
-					if n > -1 {
-						require.NoError(t, av.SelectFrame(n))
-					}
+				} else if n == 99999 {
+					require.NoError(t, av.SeekPosition(0.6))
+				} else if n == 9999 {
+					require.NoError(t, av.SelectPosition(0.7))
+				} else if n > -1 {
+					require.NoError(t, av.SelectFrame(n))
 				}
 				meta := av.Metadata()
 				metaBuf, err := json.Marshal(meta)
