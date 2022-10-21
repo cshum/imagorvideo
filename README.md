@@ -62,7 +62,7 @@ Appending the `max_frames()` or `frame(n)` filter however, would activate frame 
 http://localhost:8000/unsafe/meta/filters:max_frames()/https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/1080/Big_Buck_Bunny_1080_10s_30MB.mp4
 ```
 
-```json
+```jsonc
 {
   "format": "mp4",
   "content_type": "video/mp4",
@@ -81,7 +81,7 @@ http://localhost:8000/unsafe/meta/filters:max_frames()/https://test-videos.co.uk
 
 ### Configuration
 
-Config options specific to imagorvideo. Please refer to [imagor configuration](https://github.com/cshum/imagor#configuration) for all existing options supported.
+Configuration options specific to imagorvideo. Please see [imagor configuration](https://github.com/cshum/imagor#configuration) for all existing options available.
 
 ```
   -ffmpeg-fallback-image string
