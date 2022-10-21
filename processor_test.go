@@ -32,6 +32,7 @@ type test struct {
 	name       string
 	path       string
 	expectCode int
+	sizeOnly   bool
 }
 
 func TestProcessor(t *testing.T) {
@@ -54,10 +55,10 @@ func TestProcessor(t *testing.T) {
 		{name: "mp4 orient 270", path: "200x100/schizo_270.mp4"},
 		{name: "image", path: "fit-in/100x100/demo.png"},
 		{name: "alpha", path: "fit-in/filters:format(png)/alpha-webm.webm"},
-		{name: "alpha frame duration", path: "500x/filters:frame(5s):format(png)/alpha-webm.webm"},
-		{name: "alpha frame position", path: "500x/filters:frame(0.5):format(png)/alpha-webm.webm"},
-		{name: "alpha seek duration", path: "500x/filters:seek(5s):format(png)/alpha-webm.webm"},
-		{name: "alpha seek position", path: "500x/filters:seek(0.5):format(png)/alpha-webm.webm"},
+		{name: "alpha frame duration", path: "500x/filters:frame(5s):format(png)/alpha-webm.webm", sizeOnly: true},
+		{name: "alpha frame position", path: "500x/filters:frame(0.5):format(png)/alpha-webm.webm", sizeOnly: true},
+		{name: "alpha seek duration", path: "500x/filters:seek(5s):format(png)/alpha-webm.webm", sizeOnly: true},
+		{name: "alpha seek position", path: "500x/filters:seek(0.5):format(png)/alpha-webm.webm", sizeOnly: true},
 		{name: "corrupted", path: "fit-in/100x100/corrupt/everybody-betray-me.mkv", expectCode: 406},
 		{name: "no cover meta", path: "meta/no_cover.mp3"},
 		{name: "no cover 406", path: "fit-in/100x100/no_cover.mp3", expectCode: 406},
@@ -109,6 +110,9 @@ func doGoldenTests(t *testing.T, resultDir string, tests []test, opts ...Option)
 			assert.NoError(t, app.Shutdown(context.Background()))
 		})
 		for _, tt := range tests {
+			if i == 1 && tt.sizeOnly {
+				continue
+			}
 			t.Run(fmt.Sprintf("%s-%d", tt.name, i+1), func(t *testing.T) {
 				w := httptest.NewRecorder()
 				ctx, cancel := context.WithCancel(context.Background())
