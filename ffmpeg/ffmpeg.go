@@ -46,6 +46,7 @@ type AVContext struct {
 	orientation        int
 	size               int64
 	duration           time.Duration
+	seekDuration       time.Duration
 	availableIndex     C.int
 	availableDuration  time.Duration
 	width, height      int
@@ -110,14 +111,6 @@ func (av *AVContext) SelectDuration(ts time.Duration) (err error) {
 		}
 	}
 	return av.SelectFrame(1)
-}
-
-func (av *AVContext) SeekPosition(f float64) (err error) {
-	return av.SeekDuration(av.positionToDuration(f))
-}
-
-func (av *AVContext) SeekDuration(ts time.Duration) (err error) {
-	return seekDuration(av, ts)
 }
 
 func (av *AVContext) Export(bands int) (buf []byte, err error) {
@@ -234,6 +227,7 @@ func createDecoder(av *AVContext) error {
 }
 
 func seekDuration(av *AVContext, ts time.Duration) error {
+	av.seekDuration = ts
 	tts := C.int64_t(ts.Milliseconds()) * C.AV_TIME_BASE / 1000
 	err := C.av_seek_frame(av.formatContext, C.int(-1), tts, C.AVSEEK_FLAG_BACKWARD)
 	C.avcodec_flush_buffers(av.codecContext)

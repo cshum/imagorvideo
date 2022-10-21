@@ -57,8 +57,6 @@ func TestProcessor(t *testing.T) {
 		{name: "alpha", path: "fit-in/filters:format(png)/alpha-webm.webm"},
 		{name: "alpha frame duration", path: "500x/filters:frame(5s):format(png)/alpha-webm.webm", sizeOnly: true},
 		{name: "alpha frame position", path: "500x/filters:frame(0.5):format(png)/alpha-webm.webm", sizeOnly: true},
-		{name: "alpha seek duration", path: "500x/filters:seek(5s):format(png)/alpha-webm.webm", sizeOnly: true},
-		{name: "alpha seek position", path: "500x/filters:seek(0.5):format(png)/alpha-webm.webm", sizeOnly: true},
 		{name: "corrupted", path: "fit-in/100x100/corrupt/everybody-betray-me.mkv", expectCode: 406},
 		{name: "no cover meta", path: "meta/no_cover.mp3"},
 		{name: "no cover 406", path: "fit-in/100x100/no_cover.mp3", expectCode: 406},
