@@ -28,7 +28,7 @@ Result:
 ```
 http://localhost:8000/unsafe/300x0/7x7/filters:label(imagorvideo,-10,-7,15,yellow):fill(yellow)/http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4
 http://localhost:8000/unsafe/300x0/0x0:0x14/filters:frame(1m59s):fill(yellow):label(imagorvideo,-3,bottom,12,black,20)/http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4
-http://localhost:8000/unsafe/300x0/7x7/filters:frame(0.6):label(imagorvideo,-10,-7,15,yellow):fill(yellow)/http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4
+http://localhost:8000/unsafe/300x0/7x7/filters:frame(0.6):label(imagorvideo,10,-7,15,yellow):fill(yellow)/http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4
 ```
 
 <img src="https://raw.githubusercontent.com/cshum/imagorvideo/master/testdata/demo.jpg" height="150" /> <img src="https://raw.githubusercontent.com/cshum/imagorvideo/master/testdata/demo2.jpg" height="150" /> <img src="https://raw.githubusercontent.com/cshum/imagorvideo/master/testdata/demo3.jpg" height="150" /> 
@@ -49,7 +49,7 @@ imagorvideo supports the following filters, which can be used in conjunction wit
 
 ### Metadata
 
-imagorvideo provides metadata endpoint that extracts video metadata, including dimension, duration and FPS data. The endpoint only processes the header without extracting the frame data.
+imagorvideo provides metadata endpoint that extracts video metadata, including dimension, duration and FPS data. It processes header only, without extracting the frame data for better processing speed.
 
 To use the metadata endpoint, add `/meta` right after the URL signature hash before the image operations:
 
