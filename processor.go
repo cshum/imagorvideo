@@ -79,26 +79,12 @@ func (p *Processor) Process(ctx context.Context, in *imagor.Blob, params imagorp
 		out = in
 		return
 	}
-	var r io.ReadCloser
-	var rs io.ReadSeekCloser
-	var size = in.Size()
-	if size > 0 {
-		switch mime.String() {
-		case "video/webm", "video/x-matroska":
-			// media types that does not require seek
-			if r, _, err = in.NewReader(); err != nil {
-				return
-			}
-		}
-	}
-	if r == nil {
-		if rs, size, err = in.NewReadSeeker(); err != nil {
-			return
-		}
-		r = rs
+	rs, size, err := in.NewReadSeeker()
+	if err != nil {
+		return
 	}
 	defer func() {
-		_ = r.Close()
+		_ = rs.Close()
 	}()
 	if size <= 0 && rs != nil {
 		// size must be known
@@ -109,7 +95,7 @@ func (p *Processor) Process(ctx context.Context, in *imagor.Blob, params imagorp
 			return
 		}
 	}
-	av, err := ffmpeg.LoadAVContext(r, size)
+	av, err := ffmpeg.LoadAVContext(rs, size)
 	if err != nil {
 		return
 	}
