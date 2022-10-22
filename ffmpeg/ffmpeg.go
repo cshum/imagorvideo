@@ -106,6 +106,7 @@ func (av *AVContext) SelectPosition(f float64) (err error) {
 
 func (av *AVContext) SelectDuration(ts time.Duration) (err error) {
 	if ts > 0 {
+		av.selectedDuration = ts
 		if err = seekDuration(av, ts); err != nil {
 			return
 		}
@@ -227,7 +228,6 @@ func createDecoder(av *AVContext) error {
 }
 
 func seekDuration(av *AVContext, ts time.Duration) error {
-	av.selectedDuration = ts
 	tts := C.int64_t(ts.Milliseconds()) * C.AV_TIME_BASE / 1000
 	err := C.av_seek_frame(av.formatContext, C.int(-1), tts, C.AVSEEK_FLAG_BACKWARD)
 	C.avcodec_flush_buffers(av.codecContext)
