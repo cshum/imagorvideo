@@ -33,7 +33,7 @@ http://localhost:8000/unsafe/300x0/0x0:0x14/filters:frame(0.2):fill(yellow):labe
 http://localhost:8000/unsafe/300x0/7x7/filters:frame(0.6):label(imagorvideo,-10,-7,15,yellow):fill(yellow)/http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4
 ```
 
-<img src="https://raw.githubusercontent.com/cshum/imagorvideo/master/testdata/demo.jpg" width="200" /> <img src="https://raw.githubusercontent.com/cshum/imagorvideo/master/testdata/demo2.jpg" width="200" /> <img src="https://raw.githubusercontent.com/cshum/imagorvideo/master/testdata/demo3.jpg" width="200" /> 
+<img src="https://raw.githubusercontent.com/cshum/imagorvideo/master/testdata/demo.jpg" height="100" /> <img src="https://raw.githubusercontent.com/cshum/imagorvideo/master/testdata/demo2.jpg" height="100" /> <img src="https://raw.githubusercontent.com/cshum/imagorvideo/master/testdata/demo3.jpg" height="100" /> 
 
 imagorvideo works by streaming out a limited number of frame data, looping through and calculating the histogram of each frame. It then choose the best frame for imaging, based on root-mean-square error (RMSE). This allow skipping the black frames that usually occur at the beginning of videos. 
 
