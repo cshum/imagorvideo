@@ -9,7 +9,7 @@ imagorvideo is a new initiative that brings video thumbnail capability through f
 
 imagorvideo uses ffmpeg C bindings that extracts image thumbnail from video, by attempting to select the best frame. It then forwards to libvips to perform all the image cropping, resizing and filters supported by imagor.
 
-imagorvideo integrates reader and seeker interfaces of ffmpeg C bindings with imagor [loader, storage and result storage](https://github.com/cshum/imagor#loader-storage-and-result-storage), which supports HTTP(s), S3, Google Cloud Storage out of box. It uses read stream for mkv and webm video types. For other video types that requires seeking from a non seek-able source such as HTTP, it simulates seek using memory or temp file as buffer.
+imagorvideo integrates ffmpeg AVIOContext with imagor [loader, storage and result storage](https://github.com/cshum/imagor#loader-storage-and-result-storage), which supports HTTP(s), S3, Google Cloud Storage out of box. It uses read stream for mkv and webm video types. For other video types that requires seeking from a non seek-able source such as HTTP, it simulates seek using memory or temp file as buffer.
 
 This also aims to be a reference project demonstrating imagor extension.
 
