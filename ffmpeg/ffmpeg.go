@@ -133,8 +133,8 @@ func (av *AVContext) Close() {
 
 func (av *AVContext) Metadata() *Metadata {
 	var fps float64
-	if av.availableDuration > 0 {
-		fps = float64(av.availableIndex) * float64(time.Second) / float64(av.availableDuration)
+	if av.stream != nil {
+		fps = float64(av.stream.r_frame_rate.num) / float64(av.stream.r_frame_rate.den)
 	}
 	return &Metadata{
 		Orientation: av.orientation,
@@ -143,7 +143,7 @@ func (av *AVContext) Metadata() *Metadata {
 		Height:      av.height,
 		Title:       av.title,
 		Artist:      av.artist,
-		FPS:         math.Round(fps*10) / 10,
+		FPS:         fps,
 		HasVideo:    av.hasVideo,
 		HasAudio:    av.hasAudio,
 	}

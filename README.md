@@ -49,17 +49,12 @@ http://localhost:8000/unsafe/300x0/7x7/filters:max_frames(70):fill(yellow)/http:
 
 ### Metadata
 
-imagorvideo provides metadata endpoint that extracts video metadata, dimension and duration data. By default, it only process the header without extracting the frame data for better processing speed.
+imagorvideo provides metadata endpoint that extracts video metadata, including dimension, duration and FPS data. The endpoint only processes the header without extracting the frame data.
 
 To use the metadata endpoint, add `/meta` right after the URL signature hash before the image operations:
 
 ```
 http://localhost:8000/unsafe/meta/https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/1080/Big_Buck_Bunny_1080_10s_30MB.mp4
-```
-Appending the `max_frames()` or `frame(n)` filter however, would activate frame processing. This results more processing time but would also allows retrieving frame related info such as frames per second `fps`:
-
-```
-http://localhost:8000/unsafe/meta/filters:max_frames()/https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/1080/Big_Buck_Bunny_1080_10s_30MB.mp4
 ```
 
 ```jsonc
@@ -72,12 +67,11 @@ http://localhost:8000/unsafe/meta/filters:max_frames()/https://test-videos.co.uk
   "height": 1080,
   "title": "Big Buck Bunny, Sunflower version",
   "artist": "Blender Foundation 2008, Janus Bager Kristensen 2013",
-  "fps": 30, // available only if frame processing activated
+  "fps": 30,
   "has_video": true,
   "has_audio": false
 }
 ```
-
 
 ### Configuration
 

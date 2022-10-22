@@ -114,6 +114,15 @@ func (p *Processor) Process(ctx context.Context, in *imagor.Blob, params imagorp
 		return
 	}
 	defer av.Close()
+	meta := av.Metadata()
+	if params.Meta {
+		out = imagor.NewBlobFromJsonMarshal(Metadata{
+			Format:      strings.TrimPrefix(mime.Extension(), "."),
+			ContentType: mime.String(),
+			Metadata:    meta,
+		})
+		return
+	}
 	bands := 3
 	for _, filter := range params.Filters {
 		switch filter.Name {
@@ -148,15 +157,7 @@ func (p *Processor) Process(ctx context.Context, in *imagor.Blob, params imagorp
 			}
 		}
 	}
-	meta := av.Metadata()
-	if params.Meta {
-		out = imagor.NewBlobFromJsonMarshal(Metadata{
-			Format:      strings.TrimPrefix(mime.Extension(), "."),
-			ContentType: mime.String(),
-			Metadata:    meta,
-		})
-		return
-	}
+
 	switch meta.Orientation {
 	case 3:
 		filters = append(filters, imagorpath.Filter{Name: "orient", Args: "180"})
