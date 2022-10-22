@@ -27,7 +27,7 @@ http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp
 Result:
 ```
 http://localhost:8000/unsafe/300x0/7x7/filters:label(imagorvideo,-10,-7,15,yellow):fill(yellow)/http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4
-http://localhost:8000/unsafe/300x0/0x0:0x14/filters:frame(1m59s):fill(yellow):label(imagorvideo,-3,bottom,12,black,20)/http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4
+http://localhost:8000/unsafe/300x0/0x0:0x14/filters:frame(1m59s):fill(yellow):label(imagorvideo,center,bottom,12,black,20)/http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4
 http://localhost:8000/unsafe/300x0/7x7/filters:frame(0.6):label(imagorvideo,10,-7,15,yellow):fill(yellow)/http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4
 ```
 
