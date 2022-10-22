@@ -41,13 +41,11 @@ imagorvideo then converts the selected frame to RGB image data, forwards to the 
 
 imagorvideo supports the following filters, which can be used in conjunction with [imagor filters](https://github.com/cshum/imagor#filters):
 
-- `frame(n)` specifying the frame index `n` for imaging. This allows skipping the default automatic selection, which involves computing root-mean-square error (RMSE) of histogram frames data.
+- `frame(n)` specifying the time position, duration or frame index for imaging, which skips the default automatic selection:
+  - Float between `0.0` and `1.0` indices position of the video. Example `frame(0.5)`, `frame(1.0)`
+  - Time duration indices the elasped time since the start of video. Example `frame(5m1s)`, `frame(200s)`
+  - Number starts from 1 indices frame index, example `frame(1)`, `frame(10)`
 - `max_frames(n)` restrict the maximum number of frames allocated for image selection. The smaller the number, the faster the processing time.
-
-Example:
-```
-http://localhost:8000/unsafe/300x0/7x7/filters:max_frames(70):fill(yellow)/http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4
-```
 
 ### Metadata
 
