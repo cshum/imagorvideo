@@ -107,11 +107,19 @@ func (av *AVContext) SelectPosition(f float64) (err error) {
 func (av *AVContext) SelectDuration(ts time.Duration) (err error) {
 	if ts > 0 {
 		av.selectedDuration = ts
-		if err = seekDuration(av, ts); err != nil {
+		if err = av.SeekDuration(ts); err != nil {
 			return
 		}
 	}
 	return av.ProcessFrames(-1)
+}
+
+func (av *AVContext) SeekPosition(f float64) error {
+	return av.SeekDuration(av.positionToDuration(f))
+}
+
+func (av *AVContext) SeekDuration(ts time.Duration) error {
+	return seekDuration(av, ts)
 }
 
 func (av *AVContext) Export(bands int) (buf []byte, err error) {
