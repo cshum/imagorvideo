@@ -67,17 +67,6 @@ func TestAVContext(t *testing.T) {
 				stats, err := os.Stat(path)
 				require.NoError(t, err)
 				av, err := LoadAVContext(reader, stats.Size())
-				require.NoError(t, err)
-				defer av.Close()
-				if n == 10 {
-					require.NoError(t, av.ProcessFrames(n))
-				} else if n == 99999 {
-					require.NoError(t, av.SelectDuration(time.Second))
-				} else if n == 9999 {
-					require.NoError(t, av.SelectPosition(0.7))
-				} else if n > -1 {
-					require.NoError(t, av.SelectFrame(n))
-				}
 				meta := av.Metadata()
 				metaBuf, err := json.Marshal(meta)
 				require.NoError(t, err)
@@ -86,6 +75,19 @@ func TestAVContext(t *testing.T) {
 					assert.Equal(t, string(curr), string(metaBuf))
 				} else {
 					require.NoError(t, os.WriteFile(goldenFile, metaBuf, 0666))
+				}
+				require.NoError(t, err)
+				defer av.Close()
+				if n == 10 {
+					require.NoError(t, av.ProcessFrames(n))
+				} else if n == 99999 {
+					require.NoError(t, av.SelectDuration(time.Second))
+				} else if n == 9999 {
+					require.NoError(t, av.SelectPosition(0.7))
+				} else if n == 5 {
+					require.NoError(t, av.SelectFrame(n))
+				} else {
+					require.NoError(t, av.SeekPosition(0.7))
 				}
 				bands := 4
 				if n == 99999 {
