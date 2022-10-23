@@ -67,6 +67,9 @@ It results a complete black frame.
 This is where `seek(n)` comes handy. It seeks to the key frame before the 5 minutes elapsed time, then perform best frame selection starting from that point using root-mean-square error (RMSE).
 The result is a reasonable image that sits close to the specified time:
 
+```
+http://localhost:8000/unsafe/200x0/filters:seek(5m)/http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4
+```
 ![seek 5m](https://raw.githubusercontent.com/cshum/imagorvideo/master/testdata/seek5m.jpg)
 
 ### Metadata
