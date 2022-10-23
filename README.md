@@ -58,7 +58,7 @@ http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp
 ```
 Retrieving the frame at 5 minutes elapsed time of this video:
 ```
-http://localhost:8000/unsafe/300x0/filters:frame(5m)/http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4
+http://localhost:8000/unsafe/200x0/filters:frame(5m)/http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4
 ```
 It results a complete black frame. 
 
