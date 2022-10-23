@@ -41,11 +41,33 @@ imagorvideo then converts the selected frame to RGB image data, forwards to the 
 
 imagorvideo supports the following filters, which can be used in conjunction with [imagor filters](https://github.com/cshum/imagor#filters):
 
-- `frame(n)` specifying the time position, duration or frame index for imaging, which skips the default automatic selection:
+- `frame(n)` specify the position or time duration for imaging, which skips the automatic best frame selection:
   - Float between `0.0` and `1.0` indices position of the video. Example `frame(0.5)`, `frame(1.0)`
   - Time duration indices the elasped time since the start of video. Example `frame(5m1s)`, `frame(200s)`
-  - Number starts from 1 indices frame index, example `frame(1)`, `frame(10)`
+- `seek(n)` seeks to the approximate position or time duration, then perform automatic best frame selection around that point:
+  - Float between `0.0` and `1.0` indices position of the video. Example `seek(0.5)`
+  - Time duration indices the elasped time since the start of video. Example `seek(5m1s)`, `seek(200s)`
 - `max_frames(n)` restrict the maximum number of frames allocated for image selection. The smaller the number, the faster the processing time.
+
+#### `frame(n)` vs `seek(n)`
+
+There are differences you may want to choose one over the other.
+`frame(n)` gives you the precise time frame specified. However, precise may not be the best in some circumstances:
+```
+http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4
+```
+Retrieving the frame at 5 minutes elapsed time of this video:
+```
+http://localhost:8000/unsafe/300x0/filters:frame(5m)/http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4
+```
+It results a complete black frame. 
+
+![black](https://raw.githubusercontent.com/cshum/imagorvideo/master/testdata/black.jpg)
+
+This is where `seek(n)` comes handy. It seeks to the key frame before the 5 minutes elapsed time, then perform best frame selection starting from that point using root-mean-square error (RMSE).
+The result is a reasonable image that sits close to the specified time:
+
+![seek 5m](https://raw.githubusercontent.com/cshum/imagorvideo/master/testdata/seek5m.jpg)
 
 ### Metadata
 
