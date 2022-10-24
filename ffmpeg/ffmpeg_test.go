@@ -55,7 +55,7 @@ func TestAVContext(t *testing.T) {
 	require.NoError(t, os.MkdirAll(baseDir+"golden/export", 0755))
 	t.Parallel()
 	for _, filename := range files {
-		for _, n := range []int{-1, 5, 10, 9999, 99999} {
+		for _, n := range []int{-1, 1, 5, 10, 9999, 99999} {
 			name := filename
 			if n > -1 {
 				name = fmt.Sprintf("%s-%d", filename, n)
@@ -84,6 +84,8 @@ func TestAVContext(t *testing.T) {
 					require.NoError(t, av.SelectDuration(time.Second))
 				} else if n == 9999 {
 					require.NoError(t, av.SelectPosition(0.7))
+				} else if n == 1 {
+					require.NoError(t, av.SelectDuration(0))
 				} else if n == 5 {
 					require.NoError(t, av.SelectFrame(n))
 				} else {

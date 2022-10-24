@@ -110,8 +110,10 @@ func (av *AVContext) SelectDuration(ts time.Duration) (err error) {
 		if err = av.SeekDuration(ts); err != nil {
 			return
 		}
+		return av.ProcessFrames(-1)
+	} else {
+		return av.ProcessFrames(1)
 	}
-	return av.ProcessFrames(-1)
 }
 
 func (av *AVContext) SeekPosition(f float64) error {
