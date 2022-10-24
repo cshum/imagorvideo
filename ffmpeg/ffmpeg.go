@@ -112,7 +112,7 @@ func (av *AVContext) SelectDuration(ts time.Duration) (err error) {
 		}
 		return av.ProcessFrames(-1)
 	} else {
-		return av.ProcessFrames(1)
+		return av.SelectFrame(1)
 	}
 }
 
