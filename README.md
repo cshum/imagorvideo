@@ -7,7 +7,7 @@
 
 imagorvideo is a new initiative that brings video thumbnail capability through ffmpeg, built on the foundations of [imagor](https://github.com/cshum/imagor) - a fast, Docker-ready image processing server written in Go with libvips.
 
-imagorvideo uses ffmpeg C bindings that extracts image thumbnail from video, by attempting to select the best frame from a RMSE histogram. It then forwards to libvips to perform image cropping, resizing and filters provided by imagor.
+imagorvideo uses ffmpeg C bindings that extracts image thumbnail from video, by selecting the best frame from a RMSE histogram. It then forwards to libvips to perform image [cropping, resizing](https://github.com/cshum/imagor#image-endpoint) and [filters](https://github.com/cshum/imagor#filters) provided by imagor.
 
 imagorvideo integrates ffmpeg read and seek I/O callbacks with imagor [loader, storage and result storage](https://github.com/cshum/imagor#loader-storage-and-result-storage), which supports HTTP(s), File System, AWS S3 and Google Cloud Storage out of box. For non seek-able source such as HTTP and S3, imagor simulates seek using memory or temp file buffer.
 
@@ -35,7 +35,7 @@ http://localhost:8000/unsafe/300x0/7x7/filters:frame(0.6):label(imagorvideo,10,-
 
 imagorvideo works by streaming out a limited number of frame data, looping through and calculating the histogram of each frame. It then choose the best frame based on Root Mean Square Error (RMSE). This allow skipping the black frames that usually occur at the beginning of videos. 
 
-imagorvideo then converts the selected frame to RGB image data, forwards to the imagor libvips processor, which has always been best at image processing with tons of features. Check out [imagor documentations](https://github.com/cshum/imagor#image-endpoint) for all the image options supported.
+imagorvideo then converts the selected frame to RGB image data, forwards to the imagor libvips processor, which has always been best at image processing with tons of features. Check out [imagor documentations](https://github.com/cshum/imagor#image-endpoint) for image operations supported.
 
 ### Filters
 
