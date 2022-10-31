@@ -7,9 +7,9 @@
 
 imagorvideo is a new initiative that brings video thumbnail capability through ffmpeg, built on the foundations of [imagor](https://github.com/cshum/imagor) - a fast, Docker-ready image processing server written in Go with libvips.
 
-imagorvideo uses ffmpeg C bindings that extracts video thumbnail by selecting the best frame from a RMSE histogram. It then goes through the rest of imagor pipeline to perform image [cropping, resizing](https://github.com/cshum/imagor#image-endpoint) and [filters](https://github.com/cshum/imagor#filters) using libvips.
+imagorvideo uses ffmpeg C bindings that extracts video thumbnail by selecting the best frame from a RMSE histogram. It then goes through the rest of imagor pipeline to perform image [cropping, resizing](https://github.com/cshum/imagor#image-endpoint) and [filters](https://github.com/cshum/imagor#filters).
 
-imagorvideo integrates ffmpeg read and seek I/O callbacks with imagor [loader, storage and result storage](https://github.com/cshum/imagor#loader-storage-and-result-storage), which supports HTTP(s), File System, AWS S3 and Google Cloud Storage out of box. For non seek-able source such as HTTP and S3, imagor simulates seek using memory or temp file buffer.
+imagorvideo implements ffmpeg read and seek I/O callbacks with imagor [loader, storage and result storage](https://github.com/cshum/imagor#loader-storage-and-result-storage), which supports HTTP(s), File System, AWS S3 and Google Cloud Storage out of box. For non seek-able source such as HTTP and S3, imagor simulates seek using memory or temp file buffer.
 
 This also aims to be a reference project demonstrating imagor extension.
 
