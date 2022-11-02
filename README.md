@@ -5,7 +5,7 @@
 [![Docker Hub](https://img.shields.io/badge/docker-shumc/imagorvideo-blue.svg)](https://hub.docker.com/r/shumc/imagorvideo/)
 [![GitHub Container Registry](https://ghcr-badge.herokuapp.com/cshum/imagorvideo/latest_tag?trim=major&label=ghcr.io&ignore=next,master&color=%23007ec6)](https://github.com/cshum/imagorvideo/pkgs/container/imagorvideo)
 
-imagorvideo is a new initiative that brings video thumbnail capability through ffmpeg, built on the foundations of [imagor](https://github.com/cshum/imagor) - a fast, Docker-ready image processing server written in Go with libvips.
+imagorvideo is a new initiative that brings video thumbnail capability through ffmpeg, built on the foundations of [imagor](https://github.com/cshum/imagor), a fast, Docker-ready image processing server written in Go with libvips.
 
 imagorvideo uses ffmpeg C bindings that extracts video thumbnail by selecting the best frame from a RMSE histogram. It then goes through the rest of imagor pipeline to perform image [cropping, resizing](https://github.com/cshum/imagor#image-endpoint) and [filters](https://github.com/cshum/imagor#filters).
 
@@ -35,7 +35,7 @@ http://localhost:8000/unsafe/300x0/7x7/filters:frame(0.6):label(imagorvideo,10,-
 
 imagorvideo works by streaming out a limited number of frame data, looping through and calculating the histogram of each frame. It then choose the best frame based on Root Mean Square Error (RMSE). This allow skipping the black frames that usually occur at the beginning of videos. 
 
-imagorvideo then converts the selected frame to RGB image data, forwards to the imagor libvips processor, which has always been best at image processing with tons of features. Check out [imagor documentations](https://github.com/cshum/imagor#image-endpoint) for image operations supported.
+imagorvideo then converts the selected frame to RGB image data, forwards to the imagor libvips processor, which has always been best at image processing with tons of features. Check out imagor [endpoint](https://github.com/cshum/imagor#image-endpoint) and [security](https://github.com/cshum/imagor#security) for image operations supported.
 
 ### Filters
 
