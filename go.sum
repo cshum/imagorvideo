@@ -19,8 +19,8 @@ github.com/census-instrumentation/opencensus-proto v0.2.1/go.mod h1:f6KPmirojxKA
 github.com/client9/misspell v0.3.4/go.mod h1:qj6jICC3Q7zFZvVWo7KLAzC3yx5G7kyvSDkc90ppPyw=
 github.com/cncf/udpa/go v0.0.0-20191209042840-269d4d468f6f/go.mod h1:M8M6+tZqaGXZJjfX53e64911xZQV5JYwmTeXPW+k8Sc=
 github.com/creack/pty v1.1.9/go.mod h1:oKZEueFk5CKHvIhNR5MUki03XCEU+Q6VDXinZuGJ33E=
-github.com/cshum/imagor v1.3.1 h1:w11i4PWSwX+R2nnf+Uthi3hSVwbgm+WPTKOM5JoIoM0=
-github.com/cshum/imagor v1.3.1/go.mod h1:vz1G43eCvjYTHf4ig4+u81JRnjiO3tsPapPNQa21JSA=
+github.com/cshum/imagor v1.3.2 h1:e4mLKjP6m/nOJ2+78Zp3st8odrU7T7T6UW8kB+YHOCI=
+github.com/cshum/imagor v1.3.2/go.mod h1:vz1G43eCvjYTHf4ig4+u81JRnjiO3tsPapPNQa21JSA=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
