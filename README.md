@@ -1,7 +1,7 @@
 # imagorvideo
 
 [![Test Status](https://github.com/cshum/imagorvideo/workflows/test/badge.svg)](https://github.com/cshum/imagorvideo/actions/workflows/test.yml)
-[![Coverage Status](https://coveralls.io/repos/github/cshum/imagorvideo/badge.svg?branch=master)](https://coveralls.io/github/cshum/imagorvideo?branch=master)
+[![Coverage Status](https://img.shields.io/coverallsCoverage/github/cshum/imagorvideo)](https://coveralls.io/github/cshum/imagorvideo?branch=master)
 [![Docker Hub](https://img.shields.io/badge/docker-shumc/imagorvideo-blue.svg)](https://hub.docker.com/r/shumc/imagorvideo/)
 [![GitHub Container Registry](https://ghcr-badge.deta.dev/cshum/imagorvideo/latest_tag?trim=major&label=ghcr.io&ignore=next,master&color=%23007ec6)](https://github.com/cshum/imagorvideo/pkgs/container/imagorvideo)
 
