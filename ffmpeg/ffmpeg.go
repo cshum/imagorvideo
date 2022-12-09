@@ -20,6 +20,7 @@ const (
 	hasAudio       = 2
 )
 
+// Metadata AV metadata
 type Metadata struct {
 	Orientation int     `json:"orientation"`
 	Duration    int     `json:"duration,omitempty"`
@@ -32,6 +33,7 @@ type Metadata struct {
 	HasAudio    bool    `json:"has_audio"`
 }
 
+// AVContext manages lifecycle of AV contexts and reader stream
 type AVContext struct {
 	opaque             unsafe.Pointer
 	reader             io.Reader
@@ -55,6 +57,7 @@ type AVContext struct {
 	closed             bool
 }
 
+// LoadAVContext load and create AVContext from reader stream
 func LoadAVContext(reader io.Reader, size int64) (*AVContext, error) {
 	av := &AVContext{
 		reader:        reader,
@@ -77,6 +80,8 @@ func LoadAVContext(reader io.Reader, size int64) (*AVContext, error) {
 	return av, createDecoder(av)
 }
 
+// ProcessFrames triggers frame processing
+// limit under max num of frames if maxFrames > 0
 func (av *AVContext) ProcessFrames(maxFrames int) (err error) {
 	if av.formatContext == nil || av.codecContext == nil {
 		return ErrDecoderNotFound
@@ -87,6 +92,7 @@ func (av *AVContext) ProcessFrames(maxFrames int) (err error) {
 	return
 }
 
+// SelectFrame triggers frame processing and select specific frame index
 func (av *AVContext) SelectFrame(n int) (err error) {
 	nn := C.int(n - 1)
 	if av.thumbContext != nil && nn > av.availableIndex {
@@ -104,6 +110,8 @@ func (av *AVContext) SelectPosition(f float64) (err error) {
 	return av.SelectDuration(av.positionToDuration(f))
 }
 
+// SelectDuration seeks to keyframe before the specified duration
+// then process frames to find precise duration
 func (av *AVContext) SelectDuration(ts time.Duration) (err error) {
 	if ts > 0 {
 		av.selectedDuration = ts
@@ -116,14 +124,18 @@ func (av *AVContext) SelectDuration(ts time.Duration) (err error) {
 	}
 }
 
+// SeekPosition seeks to keyframe before specified position percentage between 0 and 1
+// then process frames to find precise position
 func (av *AVContext) SeekPosition(f float64) error {
 	return av.SeekDuration(av.positionToDuration(f))
 }
 
+// SeekDuration seeks to keyframe before the  specified duration
 func (av *AVContext) SeekDuration(ts time.Duration) error {
 	return seekDuration(av, ts)
 }
 
+// Export frame to RGB or RGBA buffer
 func (av *AVContext) Export(bands int) (buf []byte, err error) {
 	if err = av.ProcessFrames(-1); err != nil {
 		return
@@ -137,10 +149,12 @@ func (av *AVContext) Export(bands int) (buf []byte, err error) {
 	return exportBuffer(av, bands)
 }
 
+// Close AVContext objects
 func (av *AVContext) Close() {
 	closeAVContext(av)
 }
 
+// Metadata AV metadata
 func (av *AVContext) Metadata() *Metadata {
 	var fps float64
 	if av.stream != nil {

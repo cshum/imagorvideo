@@ -8,7 +8,7 @@ import "sync"
 // AVLogLevel defines the ffmpeg threshold for dumping information to stderr.
 type AVLogLevel int
 
-// Possible values for AVLogLevel.
+// AVLogLevel enum
 const (
 	AVLogQuiet AVLogLevel = (iota - 1) * 8
 	AVLogPanic
@@ -35,6 +35,7 @@ func SetFFmpegLogLevel(logLevel AVLogLevel) {
 
 type LoggingHandlerFunction func(messageLevel AVLogLevel, message string)
 
+// SetLogging set AV logging handler
 func SetLogging(handler LoggingHandlerFunction) {
 	onceLogging.Do(func() {
 		C.goavLogSetup()

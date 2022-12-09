@@ -5,6 +5,7 @@ import "C"
 
 type avError int
 
+// AV Error enum
 const (
 	ErrNoMem           = avError(-C.ENOMEM)
 	ErrEOF             = avError(C.AVERROR_EOF)
@@ -31,6 +32,7 @@ func (e avError) errorString() string {
 	}
 }
 
+// Error implements error interface
 func (e avError) Error() string {
 	return "ffmpeg: " + e.errorString()
 }

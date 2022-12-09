@@ -13,12 +13,14 @@ import (
 	"time"
 )
 
+// Processor for imagorvideo that implements imagor.Processor interface
 type Processor struct {
 	Logger        *zap.Logger
 	Debug         bool
 	FallbackImage string
 }
 
+// NewProcessor creates Processor
 func NewProcessor(options ...Option) *Processor {
 	p := &Processor{
 		Logger: zap.NewNop(),
@@ -29,6 +31,7 @@ func NewProcessor(options ...Option) *Processor {
 	return p
 }
 
+// Startup implements imagor.Processor interface
 func (p *Processor) Startup(_ context.Context) error {
 	ffmpeg.SetLogging(func(level ffmpeg.AVLogLevel, message string) {
 		message = strings.TrimSuffix(message, "\n")
@@ -49,10 +52,12 @@ func (p *Processor) Startup(_ context.Context) error {
 	return nil
 }
 
+// Shutdown implements imagor.Processor interface
 func (p *Processor) Shutdown(_ context.Context) error {
 	return nil
 }
 
+// Process implements imagor.Processor interface
 func (p *Processor) Process(ctx context.Context, in *imagor.Blob, params imagorpath.Params, load imagor.LoadFunc) (out *imagor.Blob, err error) {
 	defer func() {
 		if err == nil || out != nil {
@@ -179,6 +184,7 @@ func (p *Processor) Process(ctx context.Context, in *imagor.Blob, params imagorp
 	return
 }
 
+// Metadata imagorvideo metadata
 type Metadata struct {
 	Format      string `json:"format"`
 	ContentType string `json:"content_type"`

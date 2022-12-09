@@ -6,6 +6,7 @@ import (
 	"go.uber.org/zap"
 )
 
+// Config imagorvideo config.Option
 func Config(fs *flag.FlagSet, cb func() (*zap.Logger, bool)) imagor.Option {
 	var (
 		ffmpegFallbackImage = fs.String("ffmpeg-fallback-image", "",
