@@ -1,4 +1,4 @@
-ARG GOLANG_VERSION=1.19.6
+ARG GOLANG_VERSION=1.20.1
 FROM golang:${GOLANG_VERSION}-bullseye as builder
 
 ARG FFMPEG_VERSION=5.1.2
@@ -95,7 +95,7 @@ RUN go mod download
 
 COPY . .
 
-RUN if [ "$TARGETARCH" = "amd64" ]; then go test ./...; fi
+RUN go test ./...
 RUN go build -o ${GOPATH}/bin/imagorvideo ./cmd/imagorvideo/main.go
 
 FROM debian:bullseye-slim
