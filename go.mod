@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	github.com/cshum/imagor v1.4.3
-	github.com/gabriel-vasile/mimetype v1.4.1
+	github.com/gabriel-vasile/mimetype v1.4.2
 	github.com/stretchr/testify v1.8.2
 	go.uber.org/zap v1.24.0
 )
