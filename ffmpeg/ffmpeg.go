@@ -132,6 +132,9 @@ func (av *AVContext) SeekPosition(f float64) error {
 
 // SeekDuration seeks to keyframe before the  specified duration
 func (av *AVContext) SeekDuration(ts time.Duration) error {
+	if av.formatContext == nil || av.codecContext == nil {
+		return ErrDecoderNotFound
+	}
 	return seekDuration(av, ts)
 }
 
