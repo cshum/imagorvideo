@@ -88,7 +88,7 @@ RUN DEBIAN_FRONTEND=noninteractive \
   libwebp7 libwebpmux3 libwebpdemux2 libtiff6 libexif12 libxml2 libpoppler-glib8 \
   libpango1.0-0 libmatio11 libopenslide0 libopenjp2-7 libjemalloc2 \
   libgsf-1-114 libfftw3-bin liborc-0.4-0 librsvg2-2 libcfitsio10 libimagequant0 libaom3 libheif1 \
-  libx264-dev libx265-dev libnuma-dev libvpx6 libtheora0 libvorbis-dev \
+  libx264-dev libx265-dev libnuma-dev libvpx7 libtheora0 libvorbis-dev \
   libspng0 libcgif0 && \
   ln -s /usr/lib/$(uname -m)-linux-gnu/libjemalloc.so.2 /usr/local/lib/libjemalloc.so && \
   apt-get autoremove -y && \
