@@ -6,7 +6,7 @@ require (
 	github.com/cshum/imagor v1.4.8
 	github.com/gabriel-vasile/mimetype v1.4.3
 	github.com/stretchr/testify v1.8.4
-	go.uber.org/zap v1.26.0
+	go.uber.org/zap v1.27.0
 )
 
 require (
