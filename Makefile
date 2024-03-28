@@ -21,3 +21,8 @@ docker-dev-run:
 	docker run --rm -p 8000:8000 --env-file .env imagorvideo:dev -debug -imagor-unsafe
 
 docker-dev: docker-dev-build docker-dev-run
+
+reset-golden:
+	git rm -rf testdata/golden
+	git commit -m  "test: reset golden"
+	git push
