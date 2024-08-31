@@ -25,8 +25,6 @@ github.com/cespare/xxhash/v2 v2.3.0 h1:UL815xU9SqsFlibzuggzjXhog7bL6oX9BbNZnL2UF
 github.com/cespare/xxhash/v2 v2.3.0/go.mod h1:VGX0DQ3Q6kWi7AoAeZDth3/j3BFtOZR5XLFGgcrjCOs=
 github.com/client9/misspell v0.3.4/go.mod h1:qj6jICC3Q7zFZvVWo7KLAzC3yx5G7kyvSDkc90ppPyw=
 github.com/cncf/udpa/go v0.0.0-20191209042840-269d4d468f6f/go.mod h1:M8M6+tZqaGXZJjfX53e64911xZQV5JYwmTeXPW+k8Sc=
-github.com/cshum/imagor v1.4.15 h1:wxS3Knv7uvle/8lRCSyOX56bddTd78cMAE4lUZBEKNo=
-github.com/cshum/imagor v1.4.15/go.mod h1:KlFksoDgN2jbijBYbx/AdYYxRZ6xEZsUDs7iBdihiDM=
 github.com/cshum/imagor v1.4.16-0.20240830180439-73ea2a7255ee h1:pLrgJVzitLEdEbUaYrZI2fwWtjeqyQCVb5/2feFIFwU=
 github.com/cshum/imagor v1.4.16-0.20240830180439-73ea2a7255ee/go.mod h1:KlFksoDgN2jbijBYbx/AdYYxRZ6xEZsUDs7iBdihiDM=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
