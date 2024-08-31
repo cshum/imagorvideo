@@ -5,7 +5,7 @@ go 1.22
 toolchain go1.22.1
 
 require (
-	github.com/cshum/imagor v1.4.15
+	github.com/cshum/imagor v1.4.16-0.20240830180439-73ea2a7255ee
 	github.com/gabriel-vasile/mimetype v1.4.4
 	github.com/stretchr/testify v1.9.0
 	go.uber.org/zap v1.27.0
