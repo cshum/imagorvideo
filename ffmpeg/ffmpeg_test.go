@@ -3,8 +3,8 @@ package ffmpeg
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/cshum/imagor/vips"
-	"github.com/cshum/imagor/vips/pointer"
+	"github.com/cshum/vipsgen/pointer"
+	"github.com/cshum/vipsgen/vips"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
@@ -100,9 +100,9 @@ func TestAVContext(t *testing.T) {
 				if bands > 4 {
 					bands = 4
 				}
-				img, err := vips.LoadImageFromMemory(buf, meta.Width, meta.Height, bands)
+				img, err := vips.NewImageFromMemory(buf, meta.Width, meta.Height, bands)
 				require.NoError(t, err)
-				buf, err = img.ExportJpeg(nil)
+				buf, err = img.JpegsaveBuffer(nil)
 				require.NoError(t, err)
 				goldenFile = baseDir + "golden/export/" + name + ".jpg"
 				if curr, err := os.ReadFile(goldenFile); err == nil {
