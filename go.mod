@@ -4,6 +4,7 @@ go 1.24.2
 
 require (
 	github.com/cshum/imagor v1.5.0
+	github.com/cshum/vipsgen v0.8.0
 	github.com/gabriel-vasile/mimetype v1.4.9
 	github.com/stretchr/testify v1.10.0
 	go.uber.org/zap v1.27.0
@@ -26,7 +27,6 @@ require (
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/cncf/xds/go v0.0.0-20250501225837-2ac532fd4443 // indirect
-	github.com/cshum/vipsgen v0.8.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/envoyproxy/go-control-plane/envoy v1.32.4 // indirect
 	github.com/envoyproxy/protoc-gen-validate v1.2.1 // indirect
