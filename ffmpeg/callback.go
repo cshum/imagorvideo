@@ -3,7 +3,7 @@ package ffmpeg
 // #include "ffmpeg.h"
 import "C"
 import (
-	"github.com/cshum/imagor/vips/pointer"
+	"github.com/cshum/vipsgen/pointer"
 	"io"
 	"reflect"
 	"unsafe"
