@@ -60,7 +60,6 @@ jobs:
           --strip \
           --prefix=/usr/local \
           --libdir=lib \
-          -Dgtk_doc=false \
           -Dmagick=disabled \
           -Dintrospection=disabled
           ninja -C _build
