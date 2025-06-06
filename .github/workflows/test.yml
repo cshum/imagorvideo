@@ -1,6 +1,10 @@
 name: test
 
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - master
+  pull_request:
 
 jobs:
   build:
@@ -118,7 +122,7 @@ jobs:
         run: make test
 
       - name: Commit golden files
-        if: github.event_name != 'pull_request'
+        if: github.event_name == 'pull_request'
         uses: stefanzweifel/git-auto-commit-action@v4
         with:
           commit_message: "test: update golden files"
