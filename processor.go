@@ -176,6 +176,10 @@ func (p *Processor) Process(ctx context.Context, in *imagor.Blob, params imagorp
 	}
 	out = imagor.NewBlobFromMemory(buf, meta.Width, meta.Height, bands)
 
+	if bands == 3 {
+		filters = append(filters, imagorpath.Filter{Name: "fill", Args: "black"})
+	}
+
 	if len(filters) > 0 {
 		params.Filters = append(params.Filters, filters...)
 		params.Path = imagorpath.GeneratePath(params)
