@@ -1,8 +1,8 @@
-ARG GOLANG_VERSION=1.24.3
+ARG GOLANG_VERSION=1.24.4
 FROM golang:${GOLANG_VERSION}-bookworm as builder
 
 ARG FFMPEG_VERSION=5.1.2
-ARG VIPS_VERSION=8.16.1
+ARG VIPS_VERSION=8.17.0
 ARG TARGETARCH
 
 ENV PKG_CONFIG_PATH=/usr/local/lib/pkgconfig
@@ -31,7 +31,6 @@ RUN DEBIAN_FRONTEND=noninteractive \
     --strip \
     --prefix=/usr/local \
     --libdir=lib \
-    -Dgtk_doc=false \
     -Dmagick=disabled \
     -Dintrospection=disabled && \
     ninja -C _build && \

@@ -122,7 +122,7 @@ int find_streams(AVFormatContext *fmt_ctx, AVStream **video_stream, int *orienta
     return video_audio;
 }
 
-static int open_codec(AVCodecContext *codec_ctx, AVCodec *codec) {
+static int open_codec(AVCodecContext *codec_ctx, const AVCodec *codec) {
     int err = pthread_mutex_lock(&mutex);
     if (err < 0) {
         return err;
@@ -136,7 +136,7 @@ static int open_codec(AVCodecContext *codec_ctx, AVCodec *codec) {
 }
 
 int create_codec_context(AVStream *video_stream, AVCodecContext **dec_ctx) {
-    AVCodec *dec = NULL;
+    const AVCodec *dec = NULL;
     AVCodecParameters *par = video_stream->codecpar;
     if (par->codec_id == AV_CODEC_ID_VP8) {
         dec = avcodec_find_decoder_by_name("libvpx");
