@@ -70,10 +70,16 @@ int create_format_context(AVFormatContext *fmt_ctx, void* opaque, int flags) {
 }
 
 static int get_orientation(AVStream *video_stream) {
-    uint8_t *display_matrix = av_stream_get_side_data(video_stream, AV_PKT_DATA_DISPLAYMATRIX, NULL);
+    const AVPacketSideData *side_data = NULL;
     double theta = 0;
-    if (display_matrix) {
-        theta = -av_display_rotation_get((int32_t *) display_matrix);
+
+    // Use the new API to get side data from codecpar
+    side_data = av_packet_side_data_get(video_stream->codecpar->coded_side_data,
+                                       video_stream->codecpar->nb_coded_side_data,
+                                       AV_PKT_DATA_DISPLAYMATRIX);
+
+    if (side_data && side_data->size >= 9 * sizeof(int32_t)) {
+        theta = -av_display_rotation_get((int32_t *) side_data->data);
     }
 
     theta -= 360 * floor(theta / 360 + 0.9 / 360);
