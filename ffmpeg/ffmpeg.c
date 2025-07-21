@@ -210,23 +210,28 @@ AVFrame *convert_frame_to_rgb(AVFrame *frame, int alpha) {
     return output_frame;
 }
 
-AVPacket create_packet() {
+AVPacket *create_packet() {
     AVPacket *pkt = av_packet_alloc();
+    if (!pkt) {
+        return NULL;
+    }
     pkt->data = NULL;
     pkt->size = 0;
-    return *pkt;
+    return pkt;
 }
 
-int
-obtain_next_frame(AVFormatContext *fmt_ctx, AVCodecContext *dec_ctx, int stream_index, AVPacket *pkt, AVFrame **frame) {
+int obtain_next_frame(AVFormatContext *fmt_ctx, AVCodecContext *dec_ctx, int stream_index, AVPacket *pkt, AVFrame **frame) {
     int err = 0, retry = 0;
     if (!(*frame) && !(*frame = av_frame_alloc())) {
         err = AVERROR(ENOMEM);
         return err;
     }
+
+    // Try to receive a frame from the decoder first
     if ((err = avcodec_receive_frame(dec_ctx, *frame)) != AVERROR(EAGAIN)) {
         return err;
     }
+
     while (1) {
         if ((err = av_read_frame(fmt_ctx, pkt)) < 0) {
             break;
@@ -239,6 +244,7 @@ obtain_next_frame(AVFormatContext *fmt_ctx, AVCodecContext *dec_ctx, int stream_
             if (retry++ >= 10) {
                 break;
             }
+            av_packet_unref(pkt);
             continue;
         }
         if (!(*frame) && !(*frame = av_frame_alloc())) {
@@ -251,7 +257,7 @@ obtain_next_frame(AVFormatContext *fmt_ctx, AVCodecContext *dec_ctx, int stream_
         }
         av_packet_unref(pkt);
     }
-    if (pkt->buf) {
+    if (pkt->data) {
         av_packet_unref(pkt);
     }
     return err;
