@@ -47,10 +47,9 @@ int create_codec_context(AVStream *video_stream, AVCodecContext **dec_ctx);
 
 AVFrame *convert_frame_to_rgb(AVFrame *frame, int alpha);
 
-AVPacket create_packet();
+AVPacket *create_packet();
 
-int
-obtain_next_frame(AVFormatContext *fmt_ctx, AVCodecContext *dec_ctx, int stream_index, AVPacket *pkt, AVFrame **frame);
+int obtain_next_frame(AVFormatContext *fmt_ctx, AVCodecContext *dec_ctx, int stream_index, AVPacket *pkt, AVFrame **frame);
 
 ThumbContext *create_thumb_context(AVStream *stream, AVFrame *frame);
 

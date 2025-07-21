@@ -301,8 +301,13 @@ func populateFrames(av *AVContext, frames <-chan *C.AVFrame) <-chan struct{} {
 
 func createThumbContext(av *AVContext, maxFrames C.int) error {
 	pkt := C.create_packet()
+	if pkt == nil {
+		return avError(C.int(ErrNoMem))
+	}
+	defer C.av_packet_free(&pkt)
+
 	var frame *C.AVFrame
-	err := C.obtain_next_frame(av.formatContext, av.codecContext, av.stream.index, &pkt, &frame)
+	err := C.obtain_next_frame(av.formatContext, av.codecContext, av.stream.index, pkt, &frame)
 	if err >= 0 {
 		incrementDuration(av, frame, 0)
 		av.thumbContext = C.create_thumb_context(av.stream, frame)
@@ -311,9 +316,6 @@ func createThumbContext(av *AVContext, maxFrames C.int) error {
 		}
 	}
 	if err < 0 {
-		if pkt.buf != nil {
-			C.av_packet_unref(&pkt)
-		}
 		if frame != nil {
 			C.av_frame_free(&frame)
 		}
@@ -332,18 +334,20 @@ func createThumbContext(av *AVContext, maxFrames C.int) error {
 	frames := make(chan *C.AVFrame, n)
 	done := populateFrames(av, frames)
 	frames <- frame
-	if pkt.buf != nil {
-		C.av_packet_unref(&pkt)
-	}
 	return populateThumbContext(av, frames, n, done)
 }
 
 func populateThumbContext(av *AVContext, frames chan *C.AVFrame, n C.int, done <-chan struct{}) error {
 	pkt := C.create_packet()
+	if pkt == nil {
+		return avError(C.int(ErrNoMem))
+	}
+	defer C.av_packet_free(&pkt)
+
 	var frame *C.AVFrame
 	var err C.int
 	for i := C.int(1); i < n; i++ {
-		err = C.obtain_next_frame(av.formatContext, av.codecContext, av.stream.index, &pkt, &frame)
+		err = C.obtain_next_frame(av.formatContext, av.codecContext, av.stream.index, pkt, &frame)
 		if err < 0 {
 			break
 		}
@@ -362,9 +366,6 @@ func populateThumbContext(av *AVContext, frames chan *C.AVFrame, n C.int, done <
 		av.selectedIndex = av.availableIndex
 	}
 	close(frames)
-	if pkt.buf != nil {
-		C.av_packet_unref(&pkt)
-	}
 	if frame != nil {
 		C.av_frame_free(&frame)
 	}
