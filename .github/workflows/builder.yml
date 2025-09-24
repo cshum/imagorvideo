@@ -1,4 +1,4 @@
-name: Build and Push imagorvideo Builder Image
+name: Build and Push Builder Image
 
 on:
   pull_request:
@@ -53,7 +53,6 @@ jobs:
           tags: |
             type=raw,value=latest
             type=raw,value=${{ steps.args.outputs.version_tag }}
-            type=sha,prefix={{branch}}-
 
       - name: Build and push builder image
         uses: docker/build-push-action@v5
