@@ -1,0 +1,75 @@
+name: Build and Push imagorvideo Builder Image
+
+on:
+  pull_request:
+    paths:
+      - 'Dockerfile.builder'
+      - '.github/workflows/builder.yml'
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}-builder
+  GOLANG_VERSION: '1.25.1'
+  FFMPEG_VERSION: '7.1.1'
+  VIPS_VERSION: '8.17.2'
+
+jobs:
+  build-builder:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set build arguments
+        id: args
+        run: |
+          echo "ffmpeg_version=${{ env.FFMPEG_VERSION }}" >> $GITHUB_OUTPUT
+          echo "vips_version=${{ env.VIPS_VERSION }}" >> $GITHUB_OUTPUT
+          echo "golang_version=${{ env.GOLANG_VERSION }}" >> $GITHUB_OUTPUT
+          
+          # Create version tag
+          VERSION_TAG="ffmpeg-${{ env.FFMPEG_VERSION }}-vips-${{ env.VIPS_VERSION }}-go-${{ env.GOLANG_VERSION }}"
+          echo "version_tag=${VERSION_TAG}" >> $GITHUB_OUTPUT
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=raw,value=latest
+            type=raw,value=${{ steps.args.outputs.version_tag }}
+            type=sha,prefix={{branch}}-
+
+      - name: Build and push builder image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile.builder
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            GOLANG_VERSION=${{ steps.args.outputs.golang_version }}
+            FFMPEG_VERSION=${{ steps.args.outputs.ffmpeg_version }}
+            VIPS_VERSION=${{ steps.args.outputs.vips_version }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Image digest
+        run: echo ${{ steps.build.outputs.digest }}
