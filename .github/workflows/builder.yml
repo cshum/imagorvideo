@@ -9,9 +9,9 @@ on:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}-builder
-  GOLANG_VERSION: '1.25.1'
+  GOLANG_VERSION: '1.25.5'
   FFMPEG_VERSION: '7.1.1'
-  VIPS_VERSION: '8.17.2'
+  VIPS_VERSION: '8.18.0'
 
 jobs:
   build-builder:

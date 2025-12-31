@@ -1,6 +1,6 @@
-ARG GOLANG_VERSION=1.25.1
+ARG GOLANG_VERSION=1.25.5
 ARG FFMPEG_VERSION=7.1.1
-ARG VIPS_VERSION=8.17.2
+ARG VIPS_VERSION=8.18.0
 
 FROM golang:${GOLANG_VERSION}-trixie AS cache-builder
 
@@ -22,7 +22,7 @@ RUN DEBIAN_FRONTEND=noninteractive \
   libwebp-dev libtiff-dev libexif-dev libxml2-dev libpoppler-glib-dev \
   swig libpango1.0-dev libmatio-dev libopenslide-dev libcfitsio-dev libopenjp2-7-dev liblcms2-dev \
   libgsf-1-dev libfftw3-dev liborc-0.4-dev librsvg2-dev libimagequant-dev libaom-dev \
-  libspng-dev libcgif-dev libheif-dev libheif-plugin-x265 libheif-plugin-aomenc libjxl-dev libavif-dev \
+  libspng-dev libcgif-dev libheif-dev libheif-plugin-x265 libheif-plugin-aomenc libjxl-dev libavif-dev libraw-dev \
   libmagickwand-dev \
   yasm libx264-dev libx265-dev libnuma-dev libvpx-dev libtheora-dev  \
   librtmp-dev libvorbis-dev libdav1d-dev && \
