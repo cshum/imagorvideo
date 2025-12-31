@@ -1,4 +1,4 @@
-ARG BUILDER_IMAGE_TAG=ffmpeg-7.1.1-vips-8.17.2-go-1.25.1
+ARG BUILDER_IMAGE_TAG=ffmpeg-7.1.1-vips-8.18.0-go-1.25.5
 
 # Stage 1: Build application using builder image with go + libvips + FFmpeg
 FROM ghcr.io/cshum/imagorvideo-builder:${BUILDER_IMAGE_TAG} AS builder
