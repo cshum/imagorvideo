@@ -3,7 +3,7 @@ module github.com/cshum/imagorvideo
 go 1.25
 
 require (
-	github.com/cshum/imagor v1.6.10
+	github.com/cshum/imagor v1.6.11
 	github.com/cshum/vipsgen v1.3.1
 	github.com/gabriel-vasile/mimetype v1.4.13
 	github.com/stretchr/testify v1.11.1
@@ -86,7 +86,7 @@ require (
 	golang.org/x/sys v0.40.0 // indirect
 	golang.org/x/text v0.33.0 // indirect
 	golang.org/x/time v0.14.0 // indirect
-	google.golang.org/api v0.264.0 // indirect
+	google.golang.org/api v0.265.0 // indirect
 	google.golang.org/genproto v0.0.0-20260203192932-546029d2fa20 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20260203192932-546029d2fa20 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20260203192932-546029d2fa20 // indirect
