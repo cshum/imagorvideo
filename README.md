@@ -1,7 +1,7 @@
 # imagorvideo
 
 [![Test Status](https://github.com/cshum/imagorvideo/workflows/test/badge.svg)](https://github.com/cshum/imagorvideo/actions/workflows/test.yml)
-[![Coverage Status](https://img.shields.io/coverallsCoverage/github/cshum/imagorvideo)](https://coveralls.io/github/cshum/imagorvideo?branch=master)
+[![Codecov](https://codecov.io/gh/cshum/imagorvideo/branch/master/graph/badge.svg)](https://codecov.io/gh/cshum/imagorvideo)
 [![Docker Hub](https://img.shields.io/badge/docker-shumc/imagorvideo-blue.svg)](https://hub.docker.com/r/shumc/imagorvideo/)
 
 imagorvideo is a new initiative that brings video thumbnail capability through ffmpeg, built on the foundations of [imagor](https://github.com/cshum/imagor) - a fast, secure image processing server and Go library, using libvips.
