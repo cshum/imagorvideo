@@ -61,7 +61,7 @@ func (p *Processor) Shutdown(_ context.Context) error {
 // Process implements imagor.Processor interface
 func (p *Processor) Process(ctx context.Context, in *imagor.Blob, params imagorpath.Params, load imagor.LoadFunc) (out *imagor.Blob, err error) {
 	if in == nil {
-		return in, imagor.ErrForward{}
+		return in, imagor.ErrForward{Params: params}
 	}
 	defer func() {
 		if err == nil || out != nil {
