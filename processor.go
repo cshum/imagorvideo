@@ -2,15 +2,16 @@ package imagorvideo
 
 import (
 	"context"
+	"io"
+	"strconv"
+	"strings"
+	"time"
+
 	"github.com/cshum/imagor"
 	"github.com/cshum/imagor/imagorpath"
 	"github.com/cshum/imagorvideo/ffmpeg"
 	"github.com/gabriel-vasile/mimetype"
 	"go.uber.org/zap"
-	"io"
-	"strconv"
-	"strings"
-	"time"
 )
 
 // Processor for imagorvideo that implements imagor.Processor interface
@@ -59,6 +60,9 @@ func (p *Processor) Shutdown(_ context.Context) error {
 
 // Process implements imagor.Processor interface
 func (p *Processor) Process(ctx context.Context, in *imagor.Blob, params imagorpath.Params, load imagor.LoadFunc) (out *imagor.Blob, err error) {
+	if in == nil {
+		return in, imagor.ErrForward{}
+	}
 	defer func() {
 		if err == nil || out != nil {
 			return
