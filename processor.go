@@ -79,6 +79,13 @@ func (p *Processor) Process(ctx context.Context, in *imagor.Blob, params imagorp
 			}
 		}
 	}()
+	// Forward camera RAW formats — they are not video/audio.
+	// CR3 (Canon) is ISO BMFF-based and may be misdetected as video by mimetype.
+	if in.IsRaw() {
+		err = imagor.ErrForward{Params: params}
+		out = in
+		return
+	}
 	var filters imagorpath.Filters
 	var mime = mimetype.Detect(in.Sniff())
 	if typ := mime.String(); !strings.HasPrefix(typ, "video/") &&

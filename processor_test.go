@@ -3,14 +3,6 @@ package imagorvideo
 import (
 	"context"
 	"fmt"
-	"github.com/cshum/imagor"
-	"github.com/cshum/imagor/imagorpath"
-	"github.com/cshum/imagor/processor/vipsprocessor"
-	"github.com/cshum/imagor/storage/filestorage"
-	"github.com/cshum/vipsgen/vips"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
-	"go.uber.org/zap"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -20,6 +12,15 @@ import (
 	"runtime"
 	"strings"
 	"testing"
+
+	"github.com/cshum/imagor"
+	"github.com/cshum/imagor/imagorpath"
+	"github.com/cshum/imagor/processor/vipsprocessor"
+	"github.com/cshum/imagor/storage/filestorage"
+	"github.com/cshum/vipsgen/vips"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
 )
 
 var testDataDir string
@@ -152,6 +153,63 @@ func doGoldenTests(t *testing.T, resultDir string, tests []test, opts ...Option)
 
 	}
 
+}
+
+// TestProcessorRawBypass verifies that camera RAW formats are forwarded to the next
+// processor (vipsprocessor) rather than being decoded by ffmpeg.
+// CR3 (Canon RAW 3) is an ISO BMFF container that mimetype may misdetect as video.
+func TestProcessorRawBypass(t *testing.T) {
+	p := NewProcessor(WithLogger(zap.NewExample()))
+	require.NoError(t, p.Startup(context.Background()))
+	defer func() {
+		require.NoError(t, p.Shutdown(context.Background()))
+	}()
+
+	// Construct minimal synthetic RAW blobs from magic bytes — no testdata files needed.
+	// CR3: ISO BMFF container with "ftyp" at offset 4 and "crx " at offset 8.
+	// This is the format that mimetype misdetects as video/mp4.
+	makeCR3 := func() []byte {
+		buf := make([]byte, 512)
+		copy(buf[4:], []byte("ftyp"))
+		copy(buf[8:], []byte("crx "))
+		return buf
+	}
+	// CR2: TIFF-based with "CR" magic at offset 8.
+	makeCR2 := func() []byte {
+		buf := make([]byte, 512)
+		copy(buf[0:], []byte("\x49\x49\x2A\x00")) // TIFF little-endian
+		copy(buf[8:], []byte("CR"))
+		return buf
+	}
+	// RAF: Fuji RAF with "FUJIFILMCCD-RAW" header.
+	makeRAF := func() []byte {
+		buf := make([]byte, 512)
+		copy(buf[0:], []byte("FUJIFILMCCD-RAW"))
+		return buf
+	}
+
+	tests := []struct {
+		name string
+		buf  []byte
+	}{
+		{name: "CR3 forwarded (ISO BMFF misdetected as video)", buf: makeCR3()},
+		{name: "CR2 forwarded (TIFF-based RAW)", buf: makeCR2()},
+		{name: "RAF forwarded (Fuji RAW)", buf: makeRAF()},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			blob := imagor.NewBlobFromBytes(tt.buf)
+			assert.True(t, blob.IsRaw(), "blob should be detected as RAW")
+
+			out, err := p.Process(context.Background(), blob, imagorpath.Params{}, nil)
+
+			// Must return ErrForward — not a 406 error
+			var fwd imagor.ErrForward
+			require.ErrorAs(t, err, &fwd, "RAW file must be forwarded, not processed by ffmpeg")
+			assert.Equal(t, blob, out, "forwarded blob should be the original blob unchanged")
+		})
+	}
 }
 
 type loaderFunc func(r *http.Request, image string) (blob *imagor.Blob, err error)
