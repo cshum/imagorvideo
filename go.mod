@@ -3,8 +3,8 @@ module github.com/cshum/imagorvideo
 go 1.25.0
 
 require (
-	github.com/cshum/imagor v1.8.1
-	github.com/cshum/vipsgen v1.3.8
+	github.com/cshum/imagor v1.8.2
+	github.com/cshum/vipsgen v1.3.9
 	github.com/gabriel-vasile/mimetype v1.4.13
 	github.com/stretchr/testify v1.11.1
 	go.uber.org/zap v1.27.1
