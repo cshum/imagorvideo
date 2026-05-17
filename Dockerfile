@@ -1,9 +1,22 @@
-ARG BUILDER_IMAGE_TAG=ffmpeg-7.1.1-vips-8.18.1-go-1.26.1
+ARG GOLANG_VERSION=1.26.1
+ARG BASE_IMAGE=ghcr.io/cshum/imagor-base:vips8.18.2-r5-magick-ffmpeg
+ARG DEV_BASE_IMAGE=${BASE_IMAGE}-dev
 
-# Stage 1: Build application using builder image with go + libvips + FFmpeg
-FROM ghcr.io/cshum/imagorvideo-builder:${BUILDER_IMAGE_TAG} AS builder
+FROM golang:${GOLANG_VERSION}-bookworm AS golang-base
 
-ENV PKG_CONFIG_PATH=/usr/local/lib/pkgconfig
+FROM ${BASE_IMAGE} AS native-base
+
+# Stage 1: Build application using imagor-base ffmpeg+magick dev image
+FROM ${DEV_BASE_IMAGE} AS builder
+
+COPY --from=golang-base /usr/local/go /usr/local/go
+
+ENV GOPATH=/go
+ENV PATH=/usr/local/go/bin:/go/bin:$PATH
+ENV CGO_ENABLED=1
+ENV PKG_CONFIG_PATH=/opt/imagor/lib/pkgconfig
+ENV CGO_CFLAGS=-I/opt/imagor/include
+ENV CGO_LDFLAGS="-L/opt/imagor/lib -Wl,-rpath,/opt/imagor/lib"
 
 WORKDIR ${GOPATH}/src/github.com/cshum/imagorvideo
 
@@ -14,33 +27,24 @@ RUN go mod download
 
 COPY . .
 
-RUN go build -o ${GOPATH}/bin/imagorvideo ./cmd/imagorvideo/main.go
+RUN go build -o /opt/imagor/bin/imagorvideo ./cmd/imagorvideo/main.go
 
 # Stage 2: Runtime image
-FROM debian:trixie-slim as runtime
+FROM native-base AS runtime
 LABEL maintainer="adrian@cshum.com"
 
-COPY --from=builder /usr/local/lib /usr/local/lib
-COPY --from=builder /etc/ssl/certs /etc/ssl/certs
+RUN apt-get update \
+  && apt-get upgrade -y \
+  && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+    curl \
+    media-types \
+    procps \
+  && ln -s /usr/lib/$(uname -m)-linux-gnu/libjemalloc.so.2 /usr/local/lib/libjemalloc.so \
+  && mkdir -p /var/cache/fontconfig \
+  && chmod 777 /var/cache/fontconfig \
+  && rm -rf /var/lib/apt/lists/*
 
-RUN DEBIAN_FRONTEND=noninteractive \
-  apt-get update && \
-  apt-get install --no-install-recommends -y \
-  procps curl libglib2.0-0 libjpeg62-turbo libpng16-16 libopenexr-3-1-30 \
-  libwebp7 libwebpmux3 libwebpdemux2 libtiff6 libexif12 libxml2 libpoppler-glib8t64 \
-  libpango-1.0-0 libmatio13 libopenslide0 libopenjp2-7 libjemalloc2 \
-  libgsf-1-114 libfftw3-bin liborc-0.4-0 librsvg2-2 libcfitsio10t64 libimagequant0 libaom3 \
-  libspng0 libcgif0 libheif1 libheif-plugin-x265 libheif-plugin-aomenc libjxl0.11 libraw23t64 \
-  libmagickwand-7.q16-10 \
-  libdav1d7 libx264-dev libx265-dev libnuma-dev libvpx9 libtheora0 libvorbis-dev \
-  fontconfig && \
-  ln -s /usr/lib/$(uname -m)-linux-gnu/libjemalloc.so.2 /usr/local/lib/libjemalloc.so && \
-  apt-get autoremove -y && \
-  apt-get autoclean && \
-  apt-get clean && \
-  rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
-
-COPY --from=builder /go/bin/imagorvideo /usr/local/bin/imagorvideo
+COPY --from=builder /opt/imagor/bin/imagorvideo /usr/local/bin/imagorvideo
 
 ENV VIPS_WARNING=0
 ENV MALLOC_ARENA_MAX=2
