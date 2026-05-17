@@ -6,6 +6,9 @@ on:
       - master
     tags: [ 'v*.*.*' ]
 
+env:
+  IMAGOR_BASE_IMAGE: ghcr.io/cshum/imagor-base:vips8.18.2-r5-magick-ffmpeg
+
 jobs:
   build:
     name: Docker
@@ -58,5 +61,8 @@ jobs:
           context: .
           platforms: ${{ startsWith(github.ref, 'refs/tags/v') && 'linux/amd64,linux/arm64' || 'linux/amd64' }}
           push: true
+          build-args: |
+            BASE_IMAGE=${{ env.IMAGOR_BASE_IMAGE }}
+            DEV_BASE_IMAGE=${{ env.IMAGOR_BASE_IMAGE }}-dev
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
