@@ -1,5 +1,5 @@
 ARG GOLANG_VERSION=1.26.1
-ARG BASE_IMAGE=ghcr.io/cshum/imagor-base:vips8.18.2-r6-magick-ffmpeg
+ARG BASE_IMAGE=ghcr.io/cshum/imagor-base:vips8.18.2-r7-magick-ffmpeg
 ARG DEV_BASE_IMAGE=${BASE_IMAGE}-dev
 
 FROM golang:${GOLANG_VERSION}-bookworm AS golang-base
