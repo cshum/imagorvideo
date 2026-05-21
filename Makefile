@@ -1,4 +1,4 @@
-IMAGOR_BASE_IMAGE ?= ghcr.io/cshum/imagor-base:vips8.18.2-r7-magick-ffmpeg
+IMAGOR_BASE_IMAGE ?= ghcr.io/cshum/imagor-base:vips8.18.2-r8-magick-ffmpeg
 
 build:
 	CGO_CFLAGS_ALLOW=-Xpreprocessor go build -o bin/imagorvideo ./cmd/imagorvideo/main.go
