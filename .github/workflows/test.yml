@@ -8,6 +8,9 @@ on:
     branches:
       - master
 
+env:
+  IMAGOR_BASE_IMAGE: ghcr.io/cshum/imagor-base:vips8.18.2-r7-magick-ffmpeg
+
 jobs:
   test:
     name: Docker Test
@@ -26,6 +29,9 @@ jobs:
           target: builder
           tags: imagorvideo-test
           load: true
+          build-args: |
+            BASE_IMAGE=${{ env.IMAGOR_BASE_IMAGE }}
+            DEV_BASE_IMAGE=${{ env.IMAGOR_BASE_IMAGE }}-dev
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
