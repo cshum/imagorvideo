@@ -1,4 +1,4 @@
-name: docker
+name: docker-variants
 
 on:
   push:
@@ -6,16 +6,22 @@ on:
       - master
     tags: [ 'v*.*.*' ]
 
-env:
-  IMAGOR_BASE_IMAGE: ghcr.io/cshum/imagor-base:vips8.18.2-r9-ffmpeg
-
 jobs:
-  build:
-    name: Docker
+  build-variants:
+    name: Docker variants
     runs-on: ubuntu-latest
+    if: github.repository == 'cshum/imagorvideo'
     permissions:
       contents: read
       packages: write
+    strategy:
+      matrix:
+        variant:
+          - name: magick
+            image_name: imagorvideo-magick
+            build_args: |
+              BASE_IMAGE=ghcr.io/cshum/imagor-base:vips8.18.2-r9-magick-ffmpeg
+              DEV_BASE_IMAGE=ghcr.io/cshum/imagor-base:vips8.18.2-r9-magick-ffmpeg-dev
 
     steps:
       - name: Checkout repository
@@ -37,7 +43,6 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Login to Docker Hub
-        if: github.repository == 'cshum/imagorvideo'
         uses: docker/login-action@v4
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
@@ -48,8 +53,8 @@ jobs:
         uses: docker/metadata-action@v6
         with:
           images: |
-            name=ghcr.io/${{ github.repository }},enable=true
-            name=shumc/imagorvideo,enable=${{ github.repository == 'cshum/imagorvideo' }}
+            name=ghcr.io/cshum/${{ matrix.variant.image_name }},enable=true
+            name=shumc/${{ matrix.variant.image_name }},enable=true
           tags: |
             type=ref,event=branch
             type=semver,pattern={{version}}
@@ -61,8 +66,6 @@ jobs:
           context: .
           platforms: ${{ startsWith(github.ref, 'refs/tags/v') && 'linux/amd64,linux/arm64' || 'linux/amd64' }}
           push: true
-          build-args: |
-            BASE_IMAGE=${{ env.IMAGOR_BASE_IMAGE }}
-            DEV_BASE_IMAGE=${{ env.IMAGOR_BASE_IMAGE }}-dev
+          build-args: ${{ matrix.variant.build_args }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
