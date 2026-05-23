@@ -27,7 +27,7 @@ RUN go mod download
 
 COPY . .
 
-RUN go build -o /opt/imagor/bin/imagorvideo ./cmd/imagorvideo/main.go
+RUN go build -ldflags "-s -w" -o /opt/imagor/bin/imagorvideo ./cmd/imagorvideo/main.go
 
 # Stage 2: Runtime image
 FROM native-base AS runtime
@@ -51,7 +51,7 @@ ENV MALLOC_ARENA_MAX=2
 ENV LD_PRELOAD=/usr/local/lib/libjemalloc.so
 ENV XDG_CACHE_HOME=/tmp
 
-ENV PORT 8000
+ENV PORT=8000
 
 # use unprivileged user
 USER nobody
