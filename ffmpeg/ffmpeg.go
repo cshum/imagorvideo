@@ -57,6 +57,10 @@ type AVContext struct {
 	closed             bool
 }
 
+type opaqueHandle struct {
+	ctx *AVContext
+}
+
 // LoadAVContext load and create AVContext from reader stream
 func LoadAVContext(reader io.Reader, size int64) (*AVContext, error) {
 	av := &AVContext{
@@ -220,16 +224,25 @@ func createFormatContext(av *AVContext, callbackFlags C.int) error {
 }
 
 func newOpaqueHandle(av *AVContext) unsafe.Pointer {
-	return unsafe.Pointer(uintptr(cgo.NewHandle(av)))
+	return unsafe.Pointer(uintptr(cgo.NewHandle(&opaqueHandle{ctx: av})))
+}
+
+func invalidateOpaqueHandle(opaque unsafe.Pointer) {
+	if opaque == nil {
+		return
+	}
+	holder, ok := cgo.Handle(uintptr(opaque)).Value().(*opaqueHandle)
+	if !ok || holder == nil {
+		return
+	}
+	holder.ctx = nil
 }
 
 func deleteOpaqueHandle(opaque unsafe.Pointer) {
 	if opaque == nil {
 		return
 	}
-	defer func() {
-		_ = recover()
-	}()
+	invalidateOpaqueHandle(opaque)
 	cgo.Handle(uintptr(opaque)).Delete()
 }
 

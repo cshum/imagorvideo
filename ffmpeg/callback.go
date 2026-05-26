@@ -13,14 +13,11 @@ func restoreAVContext(opaque unsafe.Pointer) (ctx *AVContext, ok bool) {
 	if opaque == nil {
 		return nil, false
 	}
-	defer func() {
-		if recover() != nil {
-			ctx = nil
-			ok = false
-		}
-	}()
-	ctx, ok = cgo.Handle(uintptr(opaque)).Value().(*AVContext)
-	return ctx, ok
+	holder, ok := cgo.Handle(uintptr(opaque)).Value().(*opaqueHandle)
+	if !ok || holder == nil || holder.ctx == nil {
+		return nil, false
+	}
+	return holder.ctx, true
 }
 
 //export goPacketRead

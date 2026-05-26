@@ -176,7 +176,7 @@ func TestCorruptedOpaque(t *testing.T) {
 	av, err := LoadAVContext(reader, stats.Size())
 	require.NoError(t, err)
 	defer av.Close()
-	deleteOpaqueHandle(av.opaque)
+	invalidateOpaqueHandle(av.opaque)
 	err = av.ProcessFrames(-1)
 	assert.Equal(t, ErrUnknown, err)
 }
