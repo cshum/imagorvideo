@@ -3,7 +3,6 @@ package ffmpeg
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/cshum/vipsgen/pointer"
 	"github.com/cshum/vipsgen/vips"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -177,7 +176,7 @@ func TestCorruptedOpaque(t *testing.T) {
 	av, err := LoadAVContext(reader, stats.Size())
 	require.NoError(t, err)
 	defer av.Close()
-	pointer.Unref(av.opaque)
+	deleteOpaqueHandle(av.opaque)
 	err = av.ProcessFrames(-1)
 	assert.Equal(t, ErrUnknown, err)
 }

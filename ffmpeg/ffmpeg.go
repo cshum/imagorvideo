@@ -6,9 +6,9 @@ package ffmpeg
 // #include "ffmpeg.h"
 import "C"
 import (
-	"github.com/cshum/vipsgen/pointer"
 	"io"
 	"math"
+	"runtime/cgo"
 	"time"
 	"unsafe"
 )
@@ -190,7 +190,8 @@ func closeAVContext(av *AVContext) {
 		if av.formatContext != nil {
 			C.free_format_context(av.formatContext)
 		}
-		pointer.Unref(av.opaque)
+		deleteOpaqueHandle(av.opaque)
+		av.opaque = nil
 		av.closed = true
 	}
 }
@@ -200,10 +201,11 @@ func createFormatContext(av *AVContext, callbackFlags C.int) error {
 	if intErr < 0 {
 		return avError(intErr)
 	}
-	av.opaque = pointer.Save(av)
+	av.opaque = newOpaqueHandle(av)
 	intErr = C.create_format_context(av.formatContext, av.opaque, callbackFlags)
 	if intErr < 0 {
-		pointer.Unref(av.opaque)
+		deleteOpaqueHandle(av.opaque)
+		av.opaque = nil
 		return avError(intErr)
 	}
 	metadata(av)
@@ -211,9 +213,24 @@ func createFormatContext(av *AVContext, callbackFlags C.int) error {
 	err := findStreams(av)
 	if err != nil {
 		C.free_format_context(av.formatContext)
-		pointer.Unref(av.opaque)
+		deleteOpaqueHandle(av.opaque)
+		av.opaque = nil
 	}
 	return err
+}
+
+func newOpaqueHandle(av *AVContext) unsafe.Pointer {
+	return unsafe.Pointer(uintptr(cgo.NewHandle(av)))
+}
+
+func deleteOpaqueHandle(opaque unsafe.Pointer) {
+	if opaque == nil {
+		return
+	}
+	defer func() {
+		_ = recover()
+	}()
+	cgo.Handle(uintptr(opaque)).Delete()
 }
 
 func metadata(av *AVContext) {
