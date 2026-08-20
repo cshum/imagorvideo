@@ -20,17 +20,17 @@ jobs:
           - name: mozjpeg
             image_name: imagorvideo-mozjpeg
             build_args: |
-              BASE_IMAGE=ghcr.io/cshum/imagor-base:vips8.18.4-r14-mozjpeg-ffmpeg
-              DEV_BASE_IMAGE=ghcr.io/cshum/imagor-base:vips8.18.4-r14-mozjpeg-ffmpeg-dev
+              BASE_IMAGE=ghcr.io/cshum/imagor-base:vips8.18.5-r14-mozjpeg-ffmpeg
+              DEV_BASE_IMAGE=ghcr.io/cshum/imagor-base:vips8.18.5-r14-mozjpeg-ffmpeg-dev
           - name: magick
             image_name: imagorvideo-magick
             build_args: |
-              BASE_IMAGE=ghcr.io/cshum/imagor-base:vips8.18.4-r14-magick-ffmpeg
-              DEV_BASE_IMAGE=ghcr.io/cshum/imagor-base:vips8.18.4-r14-magick-ffmpeg-dev
+              BASE_IMAGE=ghcr.io/cshum/imagor-base:vips8.18.5-r14-magick-ffmpeg
+              DEV_BASE_IMAGE=ghcr.io/cshum/imagor-base:vips8.18.5-r14-magick-ffmpeg-dev
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v4

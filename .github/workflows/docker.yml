@@ -7,7 +7,7 @@ on:
     tags: [ 'v*.*.*' ]
 
 env:
-  IMAGOR_BASE_IMAGE: ghcr.io/cshum/imagor-base:vips8.18.4-r14-ffmpeg
+  IMAGOR_BASE_IMAGE: ghcr.io/cshum/imagor-base:vips8.18.5-r14-ffmpeg
 
 jobs:
   build:
@@ -19,7 +19,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v4
