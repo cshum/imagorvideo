@@ -3,6 +3,7 @@ package imagorvideo
 import (
 	"context"
 	"io"
+	"math"
 	"strconv"
 	"strings"
 	"time"
@@ -19,12 +20,15 @@ type Processor struct {
 	Logger        *zap.Logger
 	Debug         bool
 	FallbackImage string
+	// MaxAnimationFrames caps the frames decoded by the gif filter
+	MaxAnimationFrames int
 }
 
 // NewProcessor creates Processor
 func NewProcessor(options ...Option) *Processor {
 	p := &Processor{
-		Logger: zap.NewNop(),
+		Logger:             zap.NewNop(),
+		MaxAnimationFrames: defaultMaxAnimationFrames,
 	}
 	for _, option := range options {
 		option(p)
@@ -126,15 +130,25 @@ func (p *Processor) Process(ctx context.Context, in *imagor.Blob, params imagorp
 		return
 	}
 	bands := 3
+	var (
+		anim      *animation
+		start     time.Duration
+		hasFormat bool
+	)
 	for _, filter := range params.Filters {
 		switch filter.Name {
 		case "format":
+			hasFormat = true
 			switch strings.ToLower(filter.Args) {
 			case "webp", "png", "gif":
 				switch mime.Extension() {
 				case ".webm", ".flv", ".mov", ".avi":
 					bands = 4
 				}
+			}
+		case "gif":
+			if a, ok := parseAnimation(filter.Args); ok {
+				anim = &a
 			}
 		case "frame":
 			if ts, e := time.ParseDuration(filter.Args); e == nil {
@@ -154,10 +168,12 @@ func (p *Processor) Process(ctx context.Context, in *imagor.Blob, params imagorp
 			}
 		case "seek":
 			if ts, e := time.ParseDuration(filter.Args); e == nil {
+				start = ts
 				if err = av.SeekDuration(ts); err != nil {
 					return
 				}
 			} else if f, e := strconv.ParseFloat(filter.Args, 64); e == nil {
+				start = time.Duration(float64(meta.Duration) * math.Max(math.Min(f, 1), 0) * float64(time.Millisecond))
 				if err = av.SeekPosition(f); err != nil {
 					return
 				}
@@ -178,14 +194,26 @@ func (p *Processor) Process(ctx context.Context, in *imagor.Blob, params imagorp
 	case 8:
 		filters = append(filters, imagorpath.Filter{Name: "orient", Args: "90"})
 	}
-	buf, err := av.Export(bands)
-	if err != nil || len(buf) == 0 {
-		if err == nil {
-			err = imagor.ErrUnsupportedFormat
+	if anim != nil {
+		if out, err = exportAnimation(av, meta, start, *anim, bands, p.MaxAnimationFrames); err != nil {
+			out = nil
+			return
 		}
-		return
+		if !hasFormat {
+			// keep the animation as gif unless a format was requested explicitly
+			filters = append(filters, imagorpath.Filter{Name: "format", Args: "gif"})
+		}
+	} else {
+		buf, e := av.Export(bands)
+		if e != nil || len(buf) == 0 {
+			if e == nil {
+				e = imagor.ErrUnsupportedFormat
+			}
+			err = e
+			return
+		}
+		out = imagor.NewBlobFromMemory(buf, meta.Width, meta.Height, bands)
 	}
-	out = imagor.NewBlobFromMemory(buf, meta.Width, meta.Height, bands)
 
 	if len(filters) > 0 {
 		params.Filters = append(params.Filters, filters...)

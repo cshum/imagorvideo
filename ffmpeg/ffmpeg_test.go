@@ -115,6 +115,70 @@ func TestAVContext(t *testing.T) {
 	}
 }
 
+func TestExportFrames(t *testing.T) {
+	vips.Startup(nil)
+	require.NoError(t, os.MkdirAll(baseDir+"golden/frames", 0755))
+	for _, filename := range files {
+		t.Run(filename, func(t *testing.T) {
+			path := baseDir + filename
+			reader, err := os.Open(path)
+			require.NoError(t, err)
+			stats, err := os.Stat(path)
+			require.NoError(t, err)
+			av, err := LoadAVContext(reader, stats.Size())
+			require.NoError(t, err)
+			defer av.Close()
+			meta := av.Metadata()
+			duration := time.Duration(meta.Duration) * time.Millisecond
+			// mix of sequential decode within the window and a seek across it
+			timestamps := []time.Duration{
+				duration / 4, duration/4 + 200*time.Millisecond, duration * 3 / 4,
+			}
+			frames, err := av.ExportFrames(timestamps, 3)
+			require.NoError(t, err)
+			require.NotEmpty(t, frames)
+			require.LessOrEqual(t, len(frames), len(timestamps))
+			for i, buf := range frames {
+				require.Len(t, buf, meta.Width*meta.Height*3)
+				img, err := vips.NewImageFromMemory(buf, meta.Width, meta.Height, 3)
+				require.NoError(t, err)
+				jpg, err := img.JpegsaveBuffer(nil)
+				require.NoError(t, err)
+				goldenFile := fmt.Sprintf("%sgolden/frames/%s-%d.jpg", baseDir, filename, i)
+				if curr, err := os.ReadFile(goldenFile); err == nil {
+					assert.True(t, reflect.DeepEqual(curr, jpg), goldenFile)
+				} else {
+					require.NoError(t, os.WriteFile(goldenFile, jpg, 0666))
+				}
+			}
+			// seeking backwards after a forward run must work too
+			again, err := av.ExportFrames([]time.Duration{0}, 4)
+			require.NoError(t, err)
+			require.Len(t, again, 1)
+			require.Len(t, again[0], meta.Width*meta.Height*4)
+			// timestamps beyond the end return what could be decoded
+			late, err := av.ExportFrames([]time.Duration{duration * 10}, 3)
+			require.NoError(t, err)
+			require.LessOrEqual(t, len(late), 1)
+		})
+	}
+	for _, filename := range noVideo {
+		t.Run(filename, func(t *testing.T) {
+			path := baseDir + filename
+			reader, err := os.Open(path)
+			require.NoError(t, err)
+			stats, err := os.Stat(path)
+			require.NoError(t, err)
+			av, err := LoadAVContext(reader, stats.Size())
+			require.NoError(t, err)
+			defer av.Close()
+			frames, err := av.ExportFrames([]time.Duration{0}, 3)
+			assert.Empty(t, frames)
+			assert.Equal(t, ErrDecoderNotFound, err)
+		})
+	}
+}
+
 func TestNoVideo(t *testing.T) {
 	require.NoError(t, os.MkdirAll(baseDir+"golden/meta", 0755))
 	require.NoError(t, os.MkdirAll(baseDir+"golden/export", 0755))

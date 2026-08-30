@@ -21,6 +21,15 @@ func WithLogger(logger *zap.Logger) Option {
 	}
 }
 
+// WithMaxAnimationFrames with maximum number of frames the gif filter decodes
+func WithMaxAnimationFrames(n int) Option {
+	return func(p *Processor) {
+		if n > 0 {
+			p.MaxAnimationFrames = n
+		}
+	}
+}
+
 // WithFallbackImage with fallback imagor option on error
 func WithFallbackImage(image string) Option {
 	return func(p *Processor) {

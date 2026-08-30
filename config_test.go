@@ -10,8 +10,10 @@ import (
 func TestConfig(t *testing.T) {
 	srv := config.CreateServer([]string{
 		"-ffmpeg-fallback-image", "https://foo.com/bar.jpg",
+		"-ffmpeg-max-animation-frames", "42",
 	}, Config)
 	app := srv.App.(*imagor.Imagor)
 	processor := app.Processors[0].(*Processor)
 	assert.Equal(t, "https://foo.com/bar.jpg", processor.FallbackImage)
+	assert.Equal(t, 42, processor.MaxAnimationFrames)
 }
