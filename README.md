@@ -123,6 +123,8 @@ Configuration options specific to imagorvideo. Please see [imagor configuration]
 ```
   -ffmpeg-fallback-image string
         FFmpeg fallback image on processing error. Supports image path enabled by loaders or storages
+  -ffmpeg-max-animation-frames int
+        FFmpeg maximum number of frames decoded by the gif filter (default 100)
 ```
 
 
