@@ -156,6 +156,108 @@ func (av *AVContext) Export(bands int) (buf []byte, err error) {
 	return exportBuffer(av, bands)
 }
 
+// ExportFrames decodes and exports one RGB or RGBA frame for each of the
+// given presentation timestamps, which must be in ascending order.
+// Decoding is sequential between nearby timestamps and seeks otherwise.
+// Returns fewer frames than requested if the stream ends early.
+func (av *AVContext) ExportFrames(timestamps []time.Duration, bands int) (frames [][]byte, err error) {
+	if av.formatContext == nil || av.codecContext == nil {
+		return nil, ErrDecoderNotFound
+	}
+	if bands < 3 || bands > 4 {
+		bands = 4
+	}
+	pkt := C.create_packet()
+	if pkt == nil {
+		return nil, avError(C.int(ErrNoMem))
+	}
+	defer C.av_packet_free(&pkt)
+
+	// obtain_next_frame unrefs the decode frame before each attempt, so the
+	// most recent picture is kept in a separate reference for the EOF case
+	frame, last := C.av_frame_alloc(), C.av_frame_alloc()
+	defer C.av_frame_free(&frame)
+	defer C.av_frame_free(&last)
+	if frame == nil || last == nil {
+		return nil, ErrNoMem
+	}
+	// position of the last decoded frame, -1 before any decode
+	position := time.Duration(-1)
+	for _, ts := range timestamps {
+		if position < 0 || ts < position || ts-position > sequentialDecodeWindow {
+			if err = seekDuration(av, ts); err != nil {
+				return
+			}
+			position = -1
+		}
+		for position < ts {
+			intErr := C.obtain_next_frame(av.formatContext, av.codecContext, av.stream.index, pkt, &frame)
+			if intErr >= 0 {
+				position = frameTimestamp(av, frame)
+				C.av_frame_unref(last)
+				if intErr = C.av_frame_ref(last, frame); intErr < 0 {
+					err = avError(intErr)
+					return
+				}
+				continue
+			}
+			if intErr != C.int(ErrEOF) {
+				err = avError(intErr)
+				return
+			}
+			if position >= 0 {
+				// stream ended before the target, use the last decoded frame
+				break
+			}
+			if len(frames) > 0 || ts == 0 {
+				return
+			}
+			// nothing decodable at or after the first target, e.g. a seek that
+			// landed at the very end: fall back to the first frame
+			if err = seekDuration(av, 0); err != nil {
+				return
+			}
+			ts = 0
+		}
+		var buf []byte
+		if buf, err = exportFrame(av, last, bands); err != nil {
+			return
+		}
+		frames = append(frames, buf)
+	}
+	return
+}
+
+// sequentialDecodeWindow is the forward distance up to which it is cheaper to
+// keep decoding than to seek back to the previous keyframe
+const sequentialDecodeWindow = 2 * time.Second
+
+func frameTimestamp(av *AVContext, frame *C.AVFrame) time.Duration {
+	pts := frame.pts
+	if pts == C.AV_NOPTS_VALUE {
+		pts = frame.best_effort_timestamp
+	}
+	if pts == C.AV_NOPTS_VALUE {
+		return 0
+	}
+	seconds := float64(pts) * float64(av.stream.time_base.num) / float64(av.stream.time_base.den)
+	return time.Duration(seconds * float64(time.Second))
+}
+
+func exportFrame(av *AVContext, frame *C.AVFrame, bands int) ([]byte, error) {
+	var alpha int
+	if bands == 4 {
+		alpha = 1
+	}
+	rgb := C.convert_frame_to_rgb(frame, C.int(alpha))
+	if rgb == nil {
+		return nil, ErrNoMem
+	}
+	defer C.av_frame_free(&rgb)
+	size := int(rgb.height) * int(rgb.width) * bands
+	return C.GoBytes(unsafe.Pointer(rgb.data[0]), C.int(size)), nil
+}
+
 // Close AVContext objects
 func (av *AVContext) Close() {
 	closeAVContext(av)

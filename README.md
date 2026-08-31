@@ -57,6 +57,15 @@ imagorvideo supports the following filters, which can be used in conjunction wit
   - Float between `0.0` and `1.0` position index of the video. Example `seek(0.5)`
   - Time duration of the elapsed time since the start of video. Example `seek(5m1s)`, `seek(200s)`
 - `max_frames(n)` restrict the maximum number of frames allocated for image selection. The smaller the number, the faster the processing time.
+- `gif(n)`, `gif(n,fps)` create an animated preview from `n` frames spread evenly over the video, played back at `fps` frames per second (default 5). Example `gif(10)`, `gif(20,4)`
+- `gif(duration)`, `gif(duration,fps)` create an animated clip of consecutive frames sampled at `fps` starting at the `seek(n)` position, or the beginning of the video. Example `gif(3s)`, `seek(1m)/gif(2s,10)`
+  - The animation is output as GIF unless `format(webp)` is set. Formats without animation support such as `format(png)` output the first frame only.
+  - `max_frames(n)` also caps the number of frames kept in the output animation. The server-wide limit is `-ffmpeg-max-animation-frames` (default 100).
+
+```
+http://localhost:8000/unsafe/300x0/filters:gif(12,4)/http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4
+http://localhost:8000/unsafe/300x0/filters:seek(1m30s):gif(2s,8)/http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4
+```
 
 #### `frame(n)` vs `seek(n)`
 
