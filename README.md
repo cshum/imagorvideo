@@ -3,12 +3,13 @@
 [![Test Status](https://github.com/cshum/imagorvideo/workflows/test/badge.svg)](https://github.com/cshum/imagorvideo/actions/workflows/test.yml)
 [![Codecov](https://img.shields.io/codecov/c/github/cshum/imagorvideo)](https://codecov.io/gh/cshum/imagorvideo)
 [![Docker Hub](https://img.shields.io/badge/docker-shumc/imagorvideo-blue.svg)](https://hub.docker.com/r/shumc/imagorvideo/)
+[![Docs](https://img.shields.io/badge/docs-docs.imagor.net-white)](https://docs.imagor.net/imagorvideo)
 
 imagorvideo is a new initiative that brings video thumbnail capability through ffmpeg, built on the foundations of [imagor](https://github.com/cshum/imagor) - a fast, secure image processing server and Go library, using libvips.
 
-imagorvideo uses ffmpeg C bindings that extracts video thumbnail by selecting the best frame from a RMSE histogram. It then goes through the rest of imagor pipeline to perform image [cropping, resizing](https://github.com/cshum/imagor#image-endpoint) and [filters](https://github.com/cshum/imagor#filters).
+imagorvideo uses ffmpeg C bindings that extracts video thumbnail by selecting the best frame from a RMSE histogram. It then goes through the rest of imagor pipeline to perform image [cropping, resizing](https://docs.imagor.net/image-endpoint) and [filters](https://docs.imagor.net/filters).
 
-imagorvideo implements ffmpeg read and seek I/O callbacks with imagor [loader, storage and result storage](https://github.com/cshum/imagor#loader-storage-and-result-storage), which supports HTTP(s), File System, AWS S3 and Google Cloud Storage out of box. For non seek-able source such as HTTP and S3, imagor simulates seek using memory or temp file buffer.
+imagorvideo implements ffmpeg read and seek I/O callbacks with imagor [loader, storage and result storage](https://docs.imagor.net/storage), which supports HTTP(s), File System, AWS S3 and Google Cloud Storage out of box. For non seek-able source such as HTTP and S3, imagor simulates seek using memory or temp file buffer.
 
 This also aims to be a reference project demonstrating imagor extension.
 
@@ -44,11 +45,11 @@ http://localhost:8000/unsafe/300x0/7x7/filters:frame(0.6):label(imagorvideo,10,-
 
 imagorvideo works by streaming out a limited number of frame data, looping through and calculating the histogram of each frame. It then choose the best frame based on Root Mean Square Error (RMSE). This allow skipping the black frames that usually occur at the beginning of videos. 
 
-imagorvideo then converts the selected frame to RGB image data, forwards to the imagor libvips processor, which has always been best at image processing with tons of features. Check out imagor [endpoint](https://github.com/cshum/imagor#image-endpoint) and [security](https://github.com/cshum/imagor#security) for image operations supported.
+imagorvideo then converts the selected frame to RGB image data, forwards to the imagor libvips processor, which has always been best at image processing with tons of features. Check out imagor [endpoint](https://docs.imagor.net/image-endpoint) and [security](https://docs.imagor.net/security) for image operations supported.
 
 ### Filters
 
-imagorvideo supports the following filters, which can be used in conjunction with [imagor filters](https://github.com/cshum/imagor#filters):
+imagorvideo supports the following filters, which can be used in conjunction with [imagor filters](https://docs.imagor.net/filters):
 
 - `frame(n)` specify the position or time duration for imaging, which skips the automatic best frame selection:
   - Float between `0.0` and `1.0` position index of the video. Example `frame(0.5)`, `frame(1.0)`
@@ -118,7 +119,7 @@ http://localhost:8000/unsafe/meta/https://test-videos.co.uk/vids/bigbuckbunny/mp
 
 ### Configuration
 
-Configuration options specific to imagorvideo. Please see [imagor configuration](https://github.com/cshum/imagor#configuration) for all existing options available.
+Configuration options specific to imagorvideo. Please see [imagor configuration](https://docs.imagor.net/configuration) for all existing options available.
 
 ```
   -ffmpeg-fallback-image string
