@@ -9,7 +9,7 @@ import (
 
 	"github.com/cshum/imagor"
 	"github.com/cshum/imagorvideo/ffmpeg"
-	"github.com/cshum/vipsgen/vips"
+	"github.com/cshum/vipsgen/v2/vips"
 )
 
 const (
@@ -155,7 +155,7 @@ func exportAnimation(av *ffmpeg.AVContext, meta *ffmpeg.Metadata, start time.Dur
 	page.SetInt("loop", 0)
 	options := vips.DefaultWebpsaveBufferOptions()
 	options.Lossless = true
-	options.Effort = 0
+	options.Effort = vips.Ptr(0) // sends effort 0, which the v1 setter dropped
 	buf, err := page.WebpsaveBuffer(options)
 	if err != nil {
 		return nil, err
