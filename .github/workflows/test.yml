@@ -9,7 +9,7 @@ on:
       - master
 
 env:
-  IMAGOR_BASE_IMAGE: ghcr.io/cshum/imagor-base:vips8.18.7-r17-magick-ffmpeg
+  IMAGOR_BASE_IMAGE: ghcr.io/cshum/imagor-base:vips8.18.7-r17-magick-ffmpeg9.0.2
 
 jobs:
   test:
