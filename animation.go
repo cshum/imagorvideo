@@ -155,8 +155,6 @@ func exportAnimation(av *ffmpeg.AVContext, meta *ffmpeg.Metadata, start time.Dur
 	page.SetInt("loop", 0)
 	options := vips.DefaultWebpsaveBufferOptions()
 	options.Lossless = true
-	// left unset: v1 dropped an explicit zero here, so the libvips default applied.
-	// vips.Ptr(0) makes the zero reach libvips instead.
 	buf, err := page.WebpsaveBuffer(options)
 	if err != nil {
 		return nil, err
