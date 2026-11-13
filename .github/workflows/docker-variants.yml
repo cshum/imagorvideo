@@ -20,13 +20,13 @@ jobs:
           - name: mozjpeg
             image_name: imagorvideo-mozjpeg
             build_args: |
-              BASE_IMAGE=ghcr.io/cshum/imagor-base:vips8.18.7-r20-mozjpeg-ffmpeg9.0.2
-              DEV_BASE_IMAGE=ghcr.io/cshum/imagor-base:vips8.18.7-r20-mozjpeg-ffmpeg9.0.2-dev
+              BASE_IMAGE=ghcr.io/cshum/imagor-base:vips8.18.7-r21-mozjpeg-ffmpeg9.0.2
+              DEV_BASE_IMAGE=ghcr.io/cshum/imagor-base:vips8.18.7-r21-mozjpeg-ffmpeg9.0.2-dev
           - name: magick
             image_name: imagorvideo-magick
             build_args: |
-              BASE_IMAGE=ghcr.io/cshum/imagor-base:vips8.18.7-r20-magick-ffmpeg9.0.2
-              DEV_BASE_IMAGE=ghcr.io/cshum/imagor-base:vips8.18.7-r20-magick-ffmpeg9.0.2-dev
+              BASE_IMAGE=ghcr.io/cshum/imagor-base:vips8.18.7-r21-magick-ffmpeg9.0.2
+              DEV_BASE_IMAGE=ghcr.io/cshum/imagor-base:vips8.18.7-r21-magick-ffmpeg9.0.2-dev
 
     steps:
       - name: Checkout repository
